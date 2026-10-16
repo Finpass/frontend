@@ -1,7 +1,8 @@
+import type { Metadata } from "next";
+import { OnboardingFlow } from "@/features/profile/components/onboarding-flow";
+
+export const metadata: Metadata = { title: "Finpass | Profil Anda" };
+
 export default function Onboarding() {
-  return (
-    <main className="font-app grid min-h-screen place-items-center p-8">
-      <h1 className="font-display text-5xl uppercase">Onboarding coming soon</h1>
-    </main>
-  );
+  return <OnboardingFlow />;
 }
