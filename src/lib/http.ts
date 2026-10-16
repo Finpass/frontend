@@ -5,6 +5,19 @@ import { toApiError } from "@/lib/api-error";
 const client = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080/api/v1",
   timeout: 30_000,
+  withCredentials: true,
+});
+
+let tokenGetter: () => string | null = () => null;
+
+export const setAccessTokenGetter = (fn: () => string | null) => {
+  tokenGetter = fn;
+};
+
+client.interceptors.request.use((config) => {
+  const token = tokenGetter();
+  if (token) config.headers.set("Authorization", `Bearer ${token}`);
+  return config;
 });
 
 client.interceptors.response.use(

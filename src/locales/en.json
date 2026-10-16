@@ -1,0 +1,287 @@
+{
+  "brand": "Daily Financial Companion",
+  "tagline": "Your money, explained every morning.",
+  "nav": {
+    "links": [
+      {
+        "id": "briefing",
+        "label": "Briefing"
+      },
+      {
+        "id": "cara-kerja",
+        "label": "How it works"
+      },
+      {
+        "id": "financial-ladder",
+        "label": "Financial Ladder"
+      },
+      {
+        "id": "keamanan",
+        "label": "Security"
+      },
+      {
+        "id": "faq",
+        "label": "FAQ"
+      }
+    ],
+    "cta": "Start Your Financial Profile",
+    "ctaShort": "Start Onboarding"
+  },
+  "hero": {
+    "title": "Your money, explained every morning.",
+    "sub": "A daily WhatsApp briefing personalised from your financial profile, not just market news.",
+    "cta1": "Start Onboarding (~8 min)",
+    "cta2": "See a sample briefing",
+    "chips": [
+      "3-step onboarding",
+      "Briefing via WhatsApp",
+      "Transparent rules, not AI guesswork"
+    ]
+  },
+  "problem": {
+    "eyebrow": "The problem",
+    "title": "You earn money, but how do you know your decisions are right?",
+    "cards": [
+      {
+        "t": "Young professionals",
+        "d": "Salary in, instalments out, savings so-so. You are not sure your money priorities are in the right order."
+      },
+      {
+        "t": "First-time investors",
+        "d": "Plenty of info and opinions online, but nobody explains which ones matter for your situation."
+      },
+      {
+        "t": "Facing a big decision",
+        "d": "Buying a home, retirement, a child's education. The stakes are high and you want clarity first."
+      }
+    ]
+  },
+  "how": {
+    "eyebrow": "How it works",
+    "title": "Three steps, from form to WhatsApp.",
+    "steps": [
+      {
+        "t": "Fill in your profile",
+        "d": "A multi-step form with 6 sections and a clear progress bar."
+      },
+      {
+        "t": "Get Risk Profile + Level",
+        "d": "You receive a Risk Profile and Financial Ladder Level from transparent rules."
+      },
+      {
+        "t": "Get the daily briefing",
+        "d": "Every morning, a personal summary lands in your WhatsApp."
+      }
+    ],
+    "wizard": {
+      "progress": "Section 2 of 6: Your finances",
+      "q": "Do you have any high-interest debt?",
+      "options": [
+        "None",
+        "Yes, repayments on track",
+        "Prefer not to answer"
+      ],
+      "income": "Monthly income",
+      "incomeValue": "Rp 15.000.000",
+      "next": "Next"
+    }
+  },
+  "ladder": {
+    "eyebrow": "Financial Ladder",
+    "title": "One ladder, one priority at a time.",
+    "sub": "Click or hover a step to see its priority.",
+    "levelWord": "Level",
+    "levels": [
+      {
+        "t": "Build an emergency fund",
+        "d": "Sized to your type of employment."
+      },
+      {
+        "t": "Pay off high-interest debt",
+        "d": "Credit cards, paylater and online loans."
+      },
+      {
+        "t": "Start basic investing",
+        "d": "Begin with simple instruments that fit your Risk Profile."
+      },
+      {
+        "t": "Optimise & diversify",
+        "d": "Spread and balance your portfolio."
+      },
+      {
+        "t": "Estate & tax planning",
+        "d": "Prepare your assets for the long term."
+      }
+    ],
+    "progress": "You are at Level 4, 32% to Level 5",
+    "progressNote": "Illustrative example of the progress display."
+  },
+  "briefing": {
+    "eyebrow": "Daily Briefing",
+    "title": "One morning message. Relevant to you.",
+    "features": [
+      {
+        "t": "Personalised to your ladder level",
+        "d": "Every briefing starts from where you are on the Financial Ladder, so the next step is always one you can take."
+      },
+      {
+        "t": "Tailored to the assets you hold",
+        "d": "News and market moves are filtered to your holdings, not the whole market."
+      },
+      {
+        "t": "Tailored to your Risk Profile",
+        "d": "Explanations and suggestions respect how much risk you are comfortable with."
+      },
+      {
+        "t": "Alert when an asset moves 3%",
+        "d": "A short alert lands in WhatsApp when something you own moves more than 3% in a day."
+      }
+    ],
+    "chat": {
+      "header": "Daily Financial Companion",
+      "greeting": "Good morning, Dinda. Here is today's briefing.",
+      "news": "Relevant news: The central bank is discussing the interest-rate path. This may affect deposit rates and money-market funds you hold.",
+      "macro": "Indicator: BI Rate and inflation are tracked. We explain the impact if anything changes.",
+      "action": "Small action today: set aside money for your emergency fund (Level 1) per your monthly plan.",
+      "alert": "Alert: an asset you hold moved more than 3% today.",
+      "note": "Illustrative example, not real data.",
+      "sub": "Your daily briefing",
+      "user": "Why am I still on Level 1?",
+      "reply": "Your emergency fund covers 2 months of expenses. The rule engine sets your target at 6 months for contract work, so this stays your priority.",
+      "cardTitle": "DAILY ALERT",
+      "cardMeta": "Holdings",
+      "cardBody": "An asset you hold moved more than 3% today. Open the app for the full explanation.",
+      "cardTag": "delivered"
+    }
+  },
+  "ai": {
+    "eyebrow": "Transparency",
+    "title": "Rules decide, AI explains.",
+    "body": "Numbers and financial decisions come only from an auditable rule engine. AI only explains them in human language.",
+    "bullets": [
+      "Audit trail: every decision traces back to its rule.",
+      "Consistency check: AI explanations are matched against rule-engine output.",
+      "No silent penalties: no score drops without an explanation."
+    ],
+    "flow": [
+      "Your answers",
+      "Rule Engine (deterministic)",
+      "LLM explains",
+      "WhatsApp briefing"
+    ],
+    "chips": [
+      "Rule Engine",
+      "LLM Explainer",
+      "Audit Trail"
+    ],
+    "thinking": "AI is composing the explanation",
+    "demo": "Your emergency fund is currently 2 months of expenses. The rule engine sets your target at 6 months because you are on a contract, so this month's priority stays Level 1."
+  },
+  "risk": {
+    "eyebrow": "Risk Profile",
+    "title": "Ability and willingness to take risk are two different things.",
+    "body": "We assess capacity (how much risk your finances can bear) and willingness (how comfortable you are with swings), then combine them.",
+    "capacity": "Capacity",
+    "willingness": "Willingness",
+    "axis": [
+      "Low",
+      "Medium",
+      "High"
+    ],
+    "labels": [
+      "Conservative",
+      "Moderate",
+      "Aggressive"
+    ],
+    "note": "Adapted from Grable-Lytton, not a validated psychometric instrument."
+  },
+  "personas": {
+    "eyebrow": "Who it's for",
+    "title": "Anyone who wants to start in the right order.",
+    "cards": [
+      {
+        "t": "New employee",
+        "d": "First salary, unsure where to begin. Start with an emergency fund."
+      },
+      {
+        "t": "First-time investor",
+        "d": "Already have an investing app, need honest context and explanations."
+      },
+      {
+        "t": "Big-decision planner",
+        "d": "Saving for a home, retirement or a child's education."
+      }
+    ]
+  },
+  "security": {
+    "eyebrow": "Security & Privacy",
+    "title": "Your data, your control.",
+    "items": [
+      {
+        "t": "Consent first",
+        "d": "We ask for your consent before collecting any data."
+      },
+      {
+        "t": "Right to delete",
+        "d": "Under Indonesia's PDP Law No. 27/2022, you can request deletion of your data."
+      },
+      {
+        "t": "Skip if you prefer",
+        "d": "Sensitive questions offer a “Prefer not to answer” option."
+      },
+      {
+        "t": "WhatsApp opt-in",
+        "d": "Briefings are only sent if you choose to receive them."
+      }
+    ]
+  },
+  "partner": {
+    "eyebrow": "For Partners",
+    "title": "Bring the financial companion to your users.",
+    "body": "For banks, asset managers and employers who want to offer financial wellness to customers or employees.",
+    "who": [
+      "Banks",
+      "Asset managers",
+      "Employers (HR financial wellness)"
+    ],
+    "cta": "Contact us"
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "Frequently asked questions.",
+    "items": [
+      {
+        "q": "Is this investment advice?",
+        "a": "No. We provide financial guidance and education. Investment decisions are entirely yours."
+      },
+      {
+        "q": "Is my data safe?",
+        "a": "We ask for consent up front, offer a right to delete under PDP Law No. 27/2022, and you may skip sensitive questions."
+      },
+      {
+        "q": "Can I stop any time?",
+        "a": "Yes. WhatsApp briefings are opt-in and you can stop them at any time."
+      },
+      {
+        "q": "Does it support sharia?",
+        "a": "You can set a sharia preference during onboarding so explanations and suggested actions adapt."
+      },
+      {
+        "q": "Why WhatsApp?",
+        "a": "It is the app you already open every day, so you do not need yet another app for the briefing."
+      },
+      {
+        "q": "Does AI decide my financial decisions?",
+        "a": "No. Numbers and decisions come from an auditable rule engine. AI only explains them."
+      }
+    ]
+  },
+  "final": {
+    "title": "Climb your financial ladder. Start today.",
+    "cta": "Start Onboarding (~8 min)"
+  },
+  "footer": {
+    "disclaimer": "Daily Financial Companion provides financial guidance and education, not investment advice. Investment decisions are entirely yours.",
+    "rights": "All rights reserved."
+  }
+}

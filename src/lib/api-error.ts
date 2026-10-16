@@ -39,7 +39,7 @@ export function toApiError(err: unknown): ApiError {
   if (err instanceof ApiError) return err;
   if (isAxiosError(err)) {
     if (!err.response) {
-      return new ApiError("NETWORK", "Tidak dapat terhubung ke server. Periksa koneksi internetmu.", 0);
+      return new ApiError("NETWORK", "Cannot reach the server. Check your internet connection.", 0);
     }
     const { status, data } = err.response;
     if (isFailure(data)) {
@@ -47,14 +47,14 @@ export function toApiError(err: unknown): ApiError {
     }
     return new ApiError("UNKNOWN", err.message, status);
   }
-  return new ApiError("UNKNOWN", err instanceof Error ? err.message : "Terjadi kesalahan tak terduga.", 500);
+  return new ApiError("UNKNOWN", err instanceof Error ? err.message : "Something unexpected went wrong.", 500);
 }
 
 export function userMessage(err: ApiError): string {
   if (err.code === "NETWORK") return err.message;
   if (err.isServerFault) {
     const ref = err.requestId ? ` (ref: ${err.requestId})` : "";
-    return `Terjadi kesalahan di server. Coba lagi sebentar lagi.${ref}`;
+    return `Something went wrong on our side. Please try again shortly.${ref}`;
   }
   return err.message;
 }
