@@ -1,5 +1,5 @@
 {
-  "brand": "Daily Financial Companion",
+  "brand": "Finpass",
   "tagline": "Your money, explained every morning.",
   "nav": {
     "links": [
@@ -29,7 +29,7 @@
   },
   "hero": {
     "title": "Your money, explained every morning.",
-    "sub": "A daily WhatsApp briefing personalised from your financial profile, not just market news.",
+    "sub": "A personal AI financial advisor, built end to end to be specific, sourced, and compliant by design.",
     "cta1": "Start Onboarding (~8 min)",
     "cta2": "See a sample briefing",
     "chips": [
@@ -133,25 +133,20 @@
         "d": "Explanations and suggestions respect how much risk you are comfortable with."
       },
       {
-        "t": "Alert when an asset moves 3%",
-        "d": "A short alert lands in WhatsApp when something you own moves more than 3% in a day."
+        "t": "Alert when an asset you hold moves sharply",
+        "d": "A short alert lands in WhatsApp when something you own makes a notable move in a day."
       }
     ],
     "chat": {
-      "header": "Daily Financial Companion",
-      "greeting": "Good morning, Dinda. Here is today's briefing.",
-      "news": "Relevant news: The central bank is discussing the interest-rate path. This may affect deposit rates and money-market funds you hold.",
-      "macro": "Indicator: BI Rate and inflation are tracked. We explain the impact if anything changes.",
-      "action": "Small action today: set aside money for your emergency fund (Level 1) per your monthly plan.",
-      "alert": "Alert: an asset you hold moved more than 3% today.",
-      "note": "Illustrative example, not real data.",
+      "header": "Finpass",
       "sub": "Your daily briefing",
-      "user": "Why am I still on Level 1?",
-      "reply": "Your emergency fund covers 2 months of expenses. The rule engine sets your target at 6 months for contract work, so this stays your priority.",
-      "cardTitle": "DAILY ALERT",
-      "cardMeta": "Holdings",
-      "cardBody": "An asset you hold moved more than 3% today. Open the app for the full explanation.",
-      "cardTag": "delivered"
+      "note": "Illustrative example, not real data.",
+      "greeting": "Morning, Dinda. Here's your briefing for 16 Oct.",
+      "alert": "The gold you hold rose 3.4% yesterday, so your position is up about Rp 170,000. Nothing you need to do, just good to know.",
+      "news": "Bank Indonesia kept the BI Rate at 5.75%, which matters for your money-market fund.",
+      "macro": "September inflation also eased to 2.8% from 3.1%, so your savings hold their value a bit better.",
+      "nudge": "One step for this week: your emergency fund covers 1.5 months of expenses, and the target for a freelancer is 9. If you can, set aside Rp 500,000 first.",
+      "footer": "Full details, and questions for your advisory chatbot, in the Finpass dashboard: finpass.com"
     }
   },
   "ai": {
@@ -281,7 +276,7 @@
     "cta": "Start Onboarding (~8 min)"
   },
   "footer": {
-    "disclaimer": "Daily Financial Companion provides financial guidance and education, not investment advice. Investment decisions are entirely yours.",
+    "disclaimer": "Finpass provides financial guidance and education, not investment advice. Investment decisions are entirely yours.",
     "rights": "All rights reserved."
   }
 }

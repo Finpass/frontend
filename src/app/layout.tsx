@@ -10,9 +10,9 @@ const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Daily Financial Companion | Your money, explained every morning.",
+  title: "Finpass | Your money, explained every morning.",
   description:
-    "A daily WhatsApp briefing personalised from your financial profile. Financial guidance and education, not investment advice.",
+    "A personal AI financial advisor, built end to end to be specific, sourced, and compliant by design. Financial guidance and education, not investment advice.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -5,17 +5,15 @@ import { AnimatePresence, motion, useInView, useReducedMotion } from "framer-mot
 import { useT, type Dict } from "@/lib/i18n";
 import { Section } from "@/components/ui/ui";
 
-type Msg = { id: string; from: "bot" | "me" | "card"; text: string };
+type Msg = { id: string; from: "bot"; text: string };
 
 const buildSteps = (c: Dict["briefing"]["chat"]) => {
   const msgs: Msg[] = [
     { id: "greet", from: "bot", text: c.greeting },
+    { id: "alert", from: "bot", text: c.alert },
     { id: "news", from: "bot", text: c.news },
     { id: "macro", from: "bot", text: c.macro },
-    { id: "action", from: "bot", text: c.action },
-    { id: "user", from: "me", text: c.user },
-    { id: "reply", from: "bot", text: c.reply },
-    { id: "card", from: "card", text: c.cardBody },
+    { id: "nudge", from: "bot", text: `${c.nudge}\n\n${c.footer}` },
   ];
   return msgs;
 };
@@ -47,32 +45,12 @@ function Typing() {
   );
 }
 
-function Bubble({ m, c }: { m: Msg; c: Dict["briefing"]["chat"] }) {
+function Bubble({ m }: { m: Msg }) {
   const base = { initial: { opacity: 0, y: 14, scale: 0.96 }, animate: { opacity: 1, y: 0, scale: 1 }, transition: { duration: 0.35, ease: "easeOut" as const } };
-  if (m.from === "me")
-    return (
-      <motion.div {...base} className="ml-auto max-w-[80%] rounded-2xl rounded-tr-sm bg-[#1f6f4a] px-3 py-2 text-[13px] text-white">
-        {m.text}
-      </motion.div>
-    );
-  if (m.from === "card")
-    return (
-      <motion.div {...base} className="flex items-end gap-2">
-        <Avatar />
-        <div className="max-w-[88%] rounded-2xl border border-gain/30 bg-[#0f1f1a] p-3 text-[12px]">
-          <div className="flex items-center justify-between gap-3">
-            <span className="font-semibold tracking-wider text-white/80">{c.cardTitle}</span>
-            <span className="rounded-full bg-gain/15 px-2 py-0.5 text-[10px] text-gain">{c.cardTag}</span>
-          </div>
-          <p className="mt-1 text-white/50">{c.cardMeta}</p>
-          <p className="mt-1.5 text-white/90">{m.text}</p>
-        </div>
-      </motion.div>
-    );
   return (
     <motion.div {...base} className="flex items-end gap-2">
       <Avatar />
-      <p className="max-w-[82%] rounded-2xl rounded-bl-sm bg-[#202c33] px-3 py-2 text-[13px] leading-snug text-[#e9edef]">{m.text}</p>
+      <p className="max-w-[82%] rounded-2xl rounded-bl-sm whitespace-pre-line bg-[#202c33] px-3 py-2 text-[13px] leading-snug text-[#e9edef]">{m.text}</p>
     </motion.div>
   );
 }
@@ -95,13 +73,8 @@ function PhoneChat({ chat, onStep }: { chat: Dict["briefing"]["chat"]; onStep: (
     const at = (ms: number, fn: () => void) => timers.push(setTimeout(() => !dead && fn(), ms));
     const run = (i: number) => {
       if (i >= all.length) return at(5000, () => { setShown(0); run(0); });
-      const bot = all[i].from !== "me";
-      if (bot) {
-        setTyping(true);
-        at(1100, () => { setTyping(false); setShown(i + 1); at(900, () => run(i + 1)); });
-      } else {
-        at(900, () => { setShown(i + 1); at(600, () => run(i + 1)); });
-      }
+      setTyping(true);
+      at(1100, () => { setTyping(false); setShown(i + 1); at(900, () => run(i + 1)); });
     };
     run(shown);
     return () => { dead = true; timers.forEach(clearTimeout); };
@@ -128,7 +101,7 @@ function PhoneChat({ chat, onStep }: { chat: Dict["briefing"]["chat"]; onStep: (
         </div>
         <div className="flex flex-1 flex-col justify-end gap-2 overflow-hidden px-3 pb-2" aria-live="polite">
           <AnimatePresence initial={false}>
-            {list.map((m) => <Bubble key={m.id} m={m} c={chat} />)}
+            {list.map((m) => <Bubble key={m.id} m={m} />)}
             {typing && <Typing key="typing" />}
           </AnimatePresence>
         </div>
@@ -155,8 +128,8 @@ export function Briefing() {
   const [step, setStep] = useState(0);
   const onStep = useCallback((n: number) => setStep(n), []);
   const f = d.briefing.features;
-  // the highlighted feature follows the chat: ladder, holdings, risk, then the alert card
-  const active = step >= 7 ? 3 : step >= 5 ? 2 : step >= 3 ? 1 : 0;
+  // highlighted feature follows the chat: gold alert, news on holdings, inflation vs savings, emergency-fund nudge
+  const active = step >= 5 ? 0 : step >= 4 ? 2 : step >= 3 ? 1 : step >= 2 ? 3 : 0;
   return (
     <Section id="briefing" eyebrow={d.briefing.eyebrow} title={d.briefing.title}>
       <div className="mt-6 rounded-3xl border border-stroke bg-panel/60 px-4 pb-8 sm:px-8 lg:mt-24 lg:pb-0 lg:pt-0">

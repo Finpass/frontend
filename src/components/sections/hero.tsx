@@ -22,7 +22,7 @@ export function Hero() {
             ))}
           </ul>
         </Reveal>
-        <HeroScene label={d.tagline} className="aspect-[6/5] w-full justify-self-center lg:w-[112%]" />
+        <HeroScene label={d.tagline} className="aspect-[6/5] w-full justify-self-center" />
       </div>
     </section>
   );
