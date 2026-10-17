@@ -3,7 +3,7 @@ import type { ApiSuccess } from "@/types/api";
 import { toApiError } from "@/lib/api-error";
 
 const client = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080/api/v1",
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL ?? "/api/v1",
   timeout: 30_000,
   withCredentials: true,
 });
