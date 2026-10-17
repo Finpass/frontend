@@ -3,7 +3,7 @@
 import { useId, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { colors } from "@/design-system/colors";
 import { areaPath, downsample, evenX, labelIndexes, linePath, nearestIndex, niceTicks, paddedDomain, scale, smoothPath, type Pt } from "@/features/dashboard/lib/charts";
-import { compactIdr, idr, monthLabel, monthYear, shortDate } from "@/features/dashboard/lib/format";
+import { axisLabels, compactIdr, idr, monthLabel, monthYear, shortDate } from "@/features/dashboard/lib/format";
 import { CLASS_COLORS, type AllocationRow } from "@/features/dashboard/lib/holdings";
 import { useDash } from "@/features/dashboard/state/use-dash";
 import type { PerformancePoint, TrendPoint } from "@/features/dashboard/types";
@@ -116,9 +116,7 @@ export function PerformanceChart({ points }: { points: PerformancePoint[] }) {
   const xs = evenX(data.length, L, W - R);
   const val: Pt[] = data.map((p, i) => [xs[i], y(p.value)]);
   const cost: Pt[] = data.map((p, i) => [xs[i], y(p.cost)]);
-  const showLabel = labelIndexes(data.length, 7);
-  // month ticks only when the label changes, so a daily series is not labelled twenty times as "Okt"
-  const labelAt = (i: number) => showLabel.has(i) && (i === 0 || monthLabel(data[i].date, lang) !== monthLabel(data[i - 1].date, lang) || data.length < 8);
+  const axis = axisLabels(data.map((p) => p.date), lang, 7);
 
   const idx = hover;
   const cur = idx === null ? null : data[idx];
@@ -177,7 +175,7 @@ export function PerformanceChart({ points }: { points: PerformancePoint[] }) {
         <path d={areaPath(lineC, cost[0], cost[cost.length - 1], H - B)} fill={`url(#${uid}c)`} />
         <path d={lineC} fill="none" stroke={colors.blue} strokeWidth="2" strokeLinecap="round" />
         <path d={lineV} fill="none" stroke={colors.teal} strokeWidth="2" strokeLinecap="round" />
-        {data.map((p, i) => labelAt(i) && <text key={i} x={xs[i]} y={H - 10} textAnchor="middle" className={axisText}>{monthLabel(p.date, lang)}</text>)}
+        {[...axis].map(([i, label]) => <text key={i} x={xs[i]} y={H - 10} textAnchor={i === 0 ? "start" : i === data.length - 1 ? "end" : "middle"} className={axisText}>{label}</text>)}
         {idx !== null && (
           <g pointerEvents="none">
             <line x1={xs[idx]} x2={xs[idx]} y1={T} y2={H - B} stroke={colors.accent} strokeDasharray="3 3" />
