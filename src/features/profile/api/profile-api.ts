@@ -7,6 +7,7 @@ export const profileApi = {
   consent: (whatsappOptIn: boolean) => http.post<Consent>("/profile/consent", { accepted: true, whatsappOptIn }),
   save: (payload: SavePayload) => http.put<SaveResponse>("/profile/answers", payload),
   submit: (lang: string) => http.post<Result>("/profile/submit", undefined, { headers: { "Accept-Language": lang } }),
+  updateCash: (amount: number) => http.put<{ amount: number }>("/profile/cash", { amount }),
   retake: () => http.post<unknown>("/profile/retake"),
   remove: () => http.delete<null>("/profile"),
 };

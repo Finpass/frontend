@@ -111,6 +111,11 @@ export interface HomeData {
   profileStatus: ProfileStatus;
 }
 
+/** A portfolio page row: a holding, or the profile's cash (edited through the profile, never deleted here). */
+export interface HoldingRow extends Holding {
+  isCash?: boolean;
+}
+
 export interface PerformancePoint {
   date: string;
   value: number;
@@ -128,7 +133,7 @@ export interface PortfolioData {
   kpis: { totalAssets: Kpi; totalCost: Kpi; unrealizedPnl: Kpi; returnYtd: Kpi };
   performance: { points: PerformancePoint[] };
   summary: PortfolioSummaryRow[];
-  holdings: Holding[];
+  holdings: HoldingRow[];
   footer: { count: number; unrealized: number; dividendsAccumulated: number };
 }
 
