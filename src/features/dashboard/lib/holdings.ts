@@ -26,7 +26,7 @@ export function allocationByClass(items: Holding[]): AllocationRow[] {
     .sort((a, b) => b.pct - a.pct);
 }
 
-export function filterHoldings(items: Holding[], query: string, assetClass: string): Holding[] {
+export function filterHoldings<T extends Holding>(items: T[], query: string, assetClass: string): T[] {
   const q = query.trim().toLowerCase();
   return items.filter(
     (h) =>

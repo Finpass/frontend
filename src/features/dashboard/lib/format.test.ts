@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compactIdr, decimal, formatUpdated, idr, monthLabel, parseDecimal, pct, relativeTime, shortDate, signedIdr, todayJakarta } from "./format";
+import { compactIdr, decimal, formatUpdated, idr, monthLabel, parseDecimal, pct, relativeTime, shortDate, signedIdr, todayJakarta, axisLabels } from "./format";
 
 describe("money", () => {
   it("formats rupiah", () => {
@@ -70,5 +70,28 @@ describe("time", () => {
     expect(monthLabel("2026-05-31", "en")).toBe("May");
     expect(shortDate("2026-10-17", "id")).toBe("17 Okt 2026");
     expect(todayJakarta(new Date("2026-10-17T20:00:00Z"))).toBe("2026-10-18");
+  });
+});
+
+describe("axisLabels", () => {
+  const days = (from: string, n: number) => Array.from({ length: n }, (_, i) => new Date(Date.parse(from) + i * 86_400_000).toISOString().slice(0, 10));
+  it("labels the first day of each month on a six month daily series", () => {
+    const d = days("2026-04-17", 183);
+    const labels = [...axisLabels(d, "en", 7)].map(([, l]) => l);
+    expect(labels).toEqual(["May", "Jun", "Jul", "Aug", "Sep", "Oct"]); // Apr starts 14 days in: too close to May, dropped
+    expect([...axisLabels(d, "en", 5).values()]).toEqual(["May", "Jul", "Sep"]); // thinned evenly when over the limit
+  });
+  it("uses day and month on a short range, evenly spaced", () => {
+    const labels = axisLabels(days("2026-10-01", 30), "id", 6);
+    expect([...labels.values()]).toEqual(["1 Okt", "11 Okt", "20 Okt", "30 Okt"]);
+  });
+  it("thins to the maximum and adds the year across years", () => {
+    const labels = axisLabels(days("2024-01-01", 800), "en", 6);
+    expect(labels.size).toBeLessThanOrEqual(6);
+    expect([...labels.values()][0]).toBe("Feb 24");
+  });
+  it("handles empty and single point series", () => {
+    expect(axisLabels([], "en").size).toBe(0);
+    expect([...axisLabels(["2026-10-17"], "en").values()]).toEqual(["17 Oct"]);
   });
 });

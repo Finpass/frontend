@@ -75,6 +75,40 @@ export function shortDate(date: string, lang: Lang): string {
   return p ? `${p.d} ${MONTHS[lang][p.m]} ${p.y}` : date;
 }
 
+/**
+ * X-axis labels for a daily series: index -> text. Short ranges (up to two months) get evenly spaced "5 Apr" labels;
+ * longer ones get the first point of each month (thinned to at most `max`), with a year suffix when the span passes a year.
+ */
+export function axisLabels(dates: string[], lang: Lang, max = 6): Map<number, string> {
+  const out = new Map<number, string>();
+  const n = dates.length;
+  if (n === 0) return out;
+  const parts = dates.map(ymd);
+  const days = (Date.parse(dates[n - 1]) - Date.parse(dates[0])) / 86_400_000;
+  if (!(days > 62)) {
+    const k = Math.min(n, Math.max(max - 2, 2)); // day labels are wider than month labels, so fewer fit
+    for (let i = 0; i < k; i++) {
+      const idx = k === 1 ? 0 : Math.round((i * (n - 1)) / (k - 1));
+      const p = parts[idx];
+      if (p) out.set(idx, `${p.d} ${MONTHS[lang][p.m]}`);
+    }
+    return out;
+  }
+  const starts: number[] = [];
+  parts.forEach((p, i) => {
+    const prev = parts[i - 1];
+    if (p && (!prev || prev.m !== p.m || prev.y !== p.y)) starts.push(i);
+  });
+  // a partial first month would sit right next to the following label: drop it when they would touch
+  if (starts.length > 2 && starts[1] - starts[0] < n / (max + 1)) starts.shift();
+  const step = Math.ceil(starts.length / max);
+  starts.filter((_, i) => i % step === 0).forEach((idx) => {
+    const p = parts[idx]!;
+    out.set(idx, days > 400 ? `${MONTHS[lang][p.m]} ${String(p.y).slice(2)}` : MONTHS[lang][p.m]);
+  });
+  return out;
+}
+
 const WORDS = {
   id: { now: "baru saja", min: (n: number) => `${n} menit lalu`, hour: (n: number) => `${n} jam lalu`, day: (n: number) => `${n} hari lalu` },
   en: {
