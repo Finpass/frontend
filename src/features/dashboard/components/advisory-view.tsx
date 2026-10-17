@@ -1,11 +1,13 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { toApiError, userMessage } from "@/lib/api-error";
 import { useAuth } from "@/features/auth/state/auth-context";
-import { profileApi } from "@/features/profile/api/profile-api";
+import { idr } from "@/features/dashboard/lib/format";
 import { advisoryApi } from "@/features/dashboard/api/advisory-api";
-import { mergeMessages, mergeTurns, parseBlocks, parseCitations, relativeTime, sessionTitle } from "@/features/dashboard/lib/advisory";
+import { fromParams } from "@/features/dashboard/lib/compare";
+import { contextRows, mergeMessages, mergeTurns, parseBlocks, parseCitations, relativeTime, safeUrl, sessionTitle } from "@/features/dashboard/lib/advisory";
 import { useDash, useNow, useResource } from "@/features/dashboard/state/use-dash";
 import type { ChatCitation, ChatMessage, ChatSessionItem, TurnEvent } from "@/features/dashboard/types";
 import { BotIcon, ChevronIcon, CloseIcon, PlusIcon, SearchIcon, SparkIcon } from "./icons";
@@ -30,7 +32,11 @@ export function AdvisoryView() {
   const [notice, setNotice] = useState<string | null>(null);
   const [panel, setPanel] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [draft, setDraft] = useState("");
+  // arriving from the comparison page: keep the products as context and pre-fill the question (the user still sends it)
+  const params = useSearchParams();
+  const [arrival] = useState(() => fromParams(params, "compare"));
+  const [draft, setDraft] = useState(() => (arrival.symbols.length >= 2 ? arrival.ask.slice(0, MAX) : ""));
+  const [cmp, setCmp] = useState<string[]>(() => (arrival.symbols.length >= 2 ? arrival.symbols : []));
   const [q, setQ] = useState("");
   const [runId, setRunId] = useState<string | null>(null);
   const [live, setLive] = useState<TurnEvent[]>([]);
@@ -123,7 +129,7 @@ export function AdvisoryView() {
     setRunId(run);
     setSending(true);
     try {
-      const r = await advisoryApi.chat({ sessionId: activeId ?? undefined, message: body, lang, runId: run });
+      const r = await advisoryApi.chat({ sessionId: activeId ?? undefined, message: body, lang, runId: run, ...(cmp.length >= 2 && { compare: cmp }) });
       if (my !== seq.current) return;
       setActiveId(r.sessionId);
       setMsgs((p) => mergeMessages(p, [{ ...r.message, grounded: r.grounded }]));
@@ -238,6 +244,12 @@ export function AdvisoryView() {
             <div ref={endRef} />
           </div>
         </div>
+        {cmp.length >= 2 && (
+          <div className="flex items-center gap-2 border-t border-stroke px-4 py-2 text-xs">
+            <span className="min-w-0 truncate rounded-full border border-accent/40 bg-accent/10 px-3 py-1 font-semibold">{a.cmpChip.replace("{list}", cmp.join(", "))}</span>
+            <button type="button" onClick={() => setCmp([])} className={`rounded-lg px-2 py-1 text-ink/70 hover:text-ink ${focusRing}`}>{a.cmpClear}</button>
+          </div>
+        )}
         <Composer value={draft} onChange={setDraft} onSend={() => send(draft)} disabled={sending} inputRef={inputRef} />
       </section>
 
@@ -282,7 +294,7 @@ function SourcesPanel({ sources }: { sources: ChatCitation[] }) {
         <ul className="mt-3 space-y-3">
           {sources.map((c) => (
             <li key={`${c.key}#${c.page}`} className="text-xs">
-              <p className="font-semibold">{c.title}</p>
+              <SourceTitle c={c} />
               <p className="mt-0.5 text-ink/60">{(a.sourceTypes as Record<string, string>)[c.sourceType] ?? c.sourceType}{c.page != null && `, ${fill(a.page, { n: c.page })}`}</p>
             </li>
           ))}
@@ -292,17 +304,28 @@ function SourcesPanel({ sources }: { sources: ChatCitation[] }) {
   );
 }
 
+/** News sources link out in a new tab; document sources are plain text. */
+function SourceTitle({ c, plain }: { c: ChatCitation; plain?: boolean }) {
+  const href = safeUrl(c.url);
+  if (!href) return plain ? <>{c.title}</> : <p className="font-semibold">{c.title}</p>;
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={`${plain ? "" : "block font-semibold "}text-accent underline-offset-2 hover:underline ${focusRing}`}>{c.title}</a>
+  );
+}
+
 function ContextPanel() {
   const { t } = useDash();
   const a = t.adv;
   const { user } = useAuth();
-  const p = useResource(`profile:${user?.id ?? ""}`, () => profileApi.get());
-  const r = p.data?.result;
-  const rows: [string, string][] = r
-    ? [
-        [a.ctxRisk, `${t.prefs.risks[r.finalProfile] ?? r.finalProfile} ${r.riskScoreEquivalent.toFixed(1)}`],
-        [a.ctxLadder, fill(a.ctxLevel, { n: r.ladderLevel })],
-      ]
+  const ctx = useResource(`advisor-context:${user?.id ?? ""}`, (signal) => advisoryApi.context({ signal }));
+  const c = ctx.data;
+  const rows = c
+    ? contextRows(
+        c,
+        { risk: a.ctxRisk, ladder: a.ctxLadder, level: a.ctxLevel, income: a.ctxIncome, expenses: a.ctxExpenses, surplus: a.ctxSurplus, installment: a.ctxInstallment, savings: a.ctxSavings, investable: a.ctxInvestable, dependents: a.ctxDependents, emergency: a.ctxEmergency, goal: a.ctxGoal, horizon: a.ctxHorizon, sharia: a.ctxSharia, yes: a.ctxYes, health: a.ctxHealth, years: a.ctxYears, months: a.ctxMonths },
+        t.prefs.risks,
+        idr,
+      )
     : [];
   return (
     <section className={`${panelCard} p-4`}>
@@ -310,11 +333,24 @@ function ContextPanel() {
       {rows.length === 0 ? (
         <p className="mt-3 text-xs text-ink/60">{a.ctxNone}</p>
       ) : (
-        <dl className="mt-3 space-y-2 text-xs">
-          {rows.map(([k, v]) => (
-            <div key={k} className="flex justify-between gap-3"><dt className="text-ink/60">{k}</dt><dd className="font-semibold">{v}</dd></div>
-          ))}
-        </dl>
+        <>
+          <dl className="mt-3 space-y-2 text-xs">
+            {rows.map(([k, v]) => (
+              <div key={k} className="flex justify-between gap-3"><dt className="text-ink/60">{k}</dt><dd className="text-right font-semibold">{v}</dd></div>
+            ))}
+          </dl>
+          {c && c.holdings.length > 0 && (
+            <>
+              <h3 className="mt-4 text-xs font-bold">{a.ctxHoldings}</h3>
+              <ul className="mt-2 space-y-1.5 text-xs">
+                {c.holdings.slice(0, 8).map((h) => (
+                  <li key={`${h.symbol}${h.name}`} className="flex justify-between gap-3"><span className="min-w-0 truncate text-ink/70">{h.symbol || h.name}</span><span className="shrink-0 font-semibold">{h.weightPct}%</span></li>
+                ))}
+              </ul>
+            </>
+          )}
+          <p className="mt-4 text-[11px] leading-snug text-ink/50">{a.ctxPrivacy}</p>
+        </>
       )}
     </section>
   );
@@ -440,7 +476,7 @@ function Bubble({ m, now }: { m: Msg; now: Date }) {
             <li key={c.n} id={`src-${m.id}-${c.n}`} tabIndex={-1} className="flex gap-2 rounded-lg px-1 text-xs text-ink/80 outline-none focus:bg-accent/10 target:bg-accent/10">
               <span className="font-semibold text-accent">[{c.n}]</span>
               <span className="min-w-0 break-words">
-                {c.title}
+                <SourceTitle c={c} plain />
                 <span className="text-ink/60">{c.page != null && `, ${fill(a.page, { n: c.page })}`}{` · ${(a.sourceTypes as Record<string, string>)[c.sourceType] ?? c.sourceType}`}</span>
               </span>
             </li>

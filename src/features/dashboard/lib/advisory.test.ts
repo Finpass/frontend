@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ChatMessage } from "@/features/dashboard/types";
-import { mergeMessages, mergeTurns, parseBlocks, parseCitations, relativeTime, sessionTitle } from "./advisory";
+import { contextRows, mergeMessages, mergeTurns, parseBlocks, parseCitations, relativeTime, safeUrl, sessionTitle } from "./advisory";
 
 const msg = (id: number, content = "x"): ChatMessage => ({ id, role: "assistant", content, citations: null, createdAt: "2026-10-17T00:00:00Z" });
 
@@ -63,5 +63,31 @@ describe("parseBlocks", () => {
   it("drops bold markers and ignores empty text", () => {
     expect(parseBlocks("**Penting** sekali")).toEqual([{ type: "p", text: "Penting sekali" }]);
     expect(parseBlocks("  \n ")).toEqual([]);
+  });
+});
+
+describe("safeUrl", () => {
+  it("allows web links only", () => {
+    expect(safeUrl("https://a.id/x")).toBe("https://a.id/x");
+    expect(safeUrl("javascript:alert(1)")).toBeNull();
+    expect(safeUrl(null)).toBeNull();
+  });
+});
+
+describe("contextRows", () => {
+  const L = { risk: "Risk", ladder: "Ladder", level: "Level {n}", income: "Income", expenses: "Expenses", surplus: "Surplus", installment: "Installment", savings: "Savings", investable: "Investable", dependents: "Dependents", emergency: "Emergency", goal: "Goal", horizon: "Horizon", sharia: "Sharia", yes: "Yes", health: "Health", years: "yr", months: "mo" };
+  const profile = { riskProfile: "Moderate", ladderLevel: 3, sharia: "no", horizonYears: 4, goal: null, incomeIDR: 12_500_000, expensesIDR: 7_000_000, surplusIDR: 5_500_000, installmentIDR: 0, savingsIDR: 40_000_000, investableIDR: 0, dependents: 0, emergencyMonths: 3, emergencyTargetMonths: 6, healthScore: 0 };
+  const rows = contextRows({ profile, holdings: [], recommended: [] }, L, { Moderate: "Moderat" }, (n) => `Rp${n}`);
+  it("shows income, translated risk and emergency fund", () => {
+    expect(rows).toContainEqual(["Risk", "Moderat"]);
+    expect(rows).toContainEqual(["Income", "Rp12500000"]);
+    expect(rows).toContainEqual(["Emergency", "3 / 6 mo"]);
+    expect(rows).toContainEqual(["Ladder", "Level 3"]);
+  });
+  it("leaves out zero amounts, a missing goal and non-sharia", () => {
+    const keys = rows.map((r) => r[0]);
+    expect(keys).not.toContain("Installment");
+    expect(keys).not.toContain("Goal");
+    expect(keys).not.toContain("Sharia");
   });
 });

@@ -1,5 +1,5 @@
 import type { Lang } from "@/features/profile/types";
-import type { ChatMessage, TurnEvent } from "@/features/dashboard/types";
+import type { AdvisorContext, ChatMessage, TurnEvent } from "@/features/dashboard/types";
 
 export type Segment = { type: "text"; text: string } | { type: "cite"; n: number };
 
@@ -86,4 +86,31 @@ export function parseBlocks(text: string): Block[] {
   }
   flush();
   return blocks;
+}
+
+/** Only web links may be opened from a source; anything else (javascript:, data:) is shown as text. */
+export const safeUrl = (u?: string | null) => (u && /^https?:\/\//i.test(u) ? u : null);
+
+export type ContextLabels = Record<"risk" | "ladder" | "level" | "income" | "expenses" | "surplus" | "installment" | "savings" | "investable" | "dependents" | "emergency" | "goal" | "horizon" | "sharia" | "yes" | "health" | "years" | "months", string>;
+
+/** The personal facts the advisor works from, as label/value rows; zero amounts and empty fields are left out. */
+export function contextRows(c: AdvisorContext, L: ContextLabels, risks: Record<string, string>, money: (n: number) => string): [string, string][] {
+  const p = c.profile;
+  const rows: [string, string | null][] = [
+    [L.risk, risks[p.riskProfile] ?? p.riskProfile],
+    [L.ladder, L.level.replace("{n}", String(p.ladderLevel))],
+    [L.income, p.incomeIDR ? money(p.incomeIDR) : null],
+    [L.expenses, p.expensesIDR ? money(p.expensesIDR) : null],
+    [L.surplus, p.incomeIDR ? money(p.surplusIDR) : null],
+    [L.installment, p.installmentIDR ? money(p.installmentIDR) : null],
+    [L.savings, p.savingsIDR ? money(p.savingsIDR) : null],
+    [L.investable, p.investableIDR ? money(p.investableIDR) : null],
+    [L.dependents, String(p.dependents)],
+    [L.emergency, p.emergencyMonths || p.emergencyTargetMonths ? `${p.emergencyMonths} / ${p.emergencyTargetMonths} ${L.months}` : null],
+    [L.goal, p.goal ? `${p.goal}${p.goalAmountIDR ? `, ${money(p.goalAmountIDR)}` : ""}` : null],
+    [L.horizon, `${p.horizonYears} ${L.years}`],
+    [L.sharia, p.sharia === "yes" ? L.yes : null],
+    [L.health, p.healthCategory ? `${p.healthCategory} ${p.healthScore}` : null],
+  ];
+  return rows.filter((r): r is [string, string] => r[1] !== null);
 }
