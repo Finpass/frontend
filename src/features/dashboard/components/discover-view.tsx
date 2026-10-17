@@ -26,7 +26,7 @@ import {
 import { useDash, useDebounced, useResource } from "@/features/dashboard/state/use-dash";
 import type { DiscoverItem, DiscoverPage, DiscoverSort } from "@/features/dashboard/types";
 import { ArrowIcon, SearchIcon, StarIcon, StarOutlineIcon } from "./icons";
-import { InlineError, LoadingRegion, PageTitle, Sk, Tabs, card, focusRing } from "./ui";
+import { InlineError, LoadingRegion, PageTitle, Sk, Tabs, card, focusRing, selectArrow, selectChevron } from "./ui";
 
 interface More {
   base: DiscoverPage | null;
@@ -39,8 +39,7 @@ interface Stars {
 }
 
 const TONE = { gain: "text-gain", loss: "text-loss", muted: "text-ink/50" } as const;
-const chevron = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a8bd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")";
-const select = `h-10 min-w-0 appearance-none rounded-xl border border-stroke bg-field bg-[length:16px] bg-[position:right_0.75rem_center] bg-no-repeat py-0 pl-3 pr-9 text-sm ${focusRing}`;
+const select = `h-10 min-w-0 rounded-xl border border-stroke bg-field py-0 pl-3 text-sm ${selectArrow} ${focusRing}`;
 
 export function DiscoverView() {
   const { lang, t } = useDash();
@@ -127,11 +126,11 @@ export function DiscoverView() {
               className={`h-10 w-full rounded-xl border border-stroke bg-field pl-9 pr-3 text-sm placeholder:text-ink/50 ${focusRing}`}
             />
           </div>
-          <select aria-label={d.exchangeLabel} value={query.exchange} onChange={(e) => setQuery((q) => ({ ...q, exchange: e.target.value }))} className={select} style={{ backgroundImage: chevron }}>
+          <select aria-label={d.exchangeLabel} value={query.exchange} onChange={(e) => setQuery((q) => ({ ...q, exchange: e.target.value }))} className={select} style={{ backgroundImage: selectChevron }}>
             <option value="">{d.allExchanges}</option>
             {exchanges.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
-          <select aria-label={d.industryLabel} value={query.industry} onChange={(e) => setQuery((q) => ({ ...q, industry: e.target.value }))} className={`${select} max-w-56`} style={{ backgroundImage: chevron }}>
+          <select aria-label={d.industryLabel} value={query.industry} onChange={(e) => setQuery((q) => ({ ...q, industry: e.target.value }))} className={`${select} max-w-56`} style={{ backgroundImage: selectChevron }}>
             <option value="">{d.allIndustries}</option>
             {industries.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>

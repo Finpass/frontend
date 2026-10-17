@@ -10,6 +10,9 @@ import { ArrowIcon, BriefcaseIcon, ChevronIcon, UserIcon } from "./icons";
 
 export { focusRing };
 
+export const selectChevron = "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a8bd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")";
+export const selectArrow = "appearance-none bg-[length:16px] bg-[position:right_0.75rem_center] bg-no-repeat pr-9";
+
 export const card = "rounded-2xl border border-stroke bg-card";
 
 export function Delta({ value, suffix, digits = 1 }: { value: number; suffix?: string; digits?: number }) {
@@ -87,12 +90,12 @@ export function ViewSwitch({ active }: { active: "profile" | "portfolio" | "reco
   ];
   return (
     <nav aria-label={t.home.switchLabel} className="inline-flex rounded-xl border border-stroke bg-field p-0.5">
-      <Link href="/dashboard" aria-current={active === "profile" ? "page" : undefined} className={`${tab} ${focusRing} ${active === "profile" ? "bg-accent text-primary-ink" : "text-ink hover:bg-surface"}`}>
+      <Link href="/dashboard" aria-current={active === "profile" ? "page" : undefined} className={`${tab} ${focusRing} ${active === "profile" ? "bg-accent font-bold text-white" : "text-ink hover:bg-surface"}`}>
         <UserIcon aria-hidden className="size-4" />
         {t.home.profile}
       </Link>
       <div ref={ref} className="relative">
-        <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)} className={`${tab} ${focusRing} ${onPortfolio ? "bg-accent text-primary-ink" : "text-ink hover:bg-surface"}`}>
+        <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)} className={`${tab} ${focusRing} ${onPortfolio ? "bg-accent font-bold text-white" : "text-ink hover:bg-surface"}`}>
           <BriefcaseIcon aria-hidden className="size-4" />
           {t.home.portfolio}
           <ChevronIcon aria-hidden className={`size-4 transition-transform ${open ? "rotate-180" : ""}`} />
