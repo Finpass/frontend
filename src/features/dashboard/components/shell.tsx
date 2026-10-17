@@ -13,13 +13,14 @@ import { guardDecision } from "@/features/dashboard/lib/guard";
 import { formatUpdated } from "@/features/dashboard/lib/format";
 import { ChromeContext, useChrome, useDash, useNow, useResource } from "@/features/dashboard/state/use-dash";
 import { useDismiss } from "@/features/dashboard/state/use-dismiss";
-import { BellIcon, ChevronIcon, ClockIcon, CompassIcon, GearIcon, HomeIcon, NewsIcon, SearchIcon, SparkIcon, StarIcon } from "./icons";
+import { BellIcon, ChevronIcon, ClockIcon, CompareIcon, CompassIcon, GearIcon, HomeIcon, NewsIcon, SearchIcon, SparkIcon, StarIcon } from "./icons";
 import { InlineError, focusRing } from "./ui";
 
 const NAV = [
   { href: "/dashboard", key: "home", icon: HomeIcon, match: (p: string) => p === "/dashboard" || p.startsWith("/dashboard/portfolio") },
   { href: "/dashboard/news", key: "news", icon: NewsIcon, match: (p: string) => p.startsWith("/dashboard/news") },
   { href: "/dashboard/discover", key: "discover", icon: CompassIcon, match: (p: string) => p.startsWith("/dashboard/discover") },
+  { href: "/dashboard/compare", key: "compare", icon: CompareIcon, match: (p: string) => p.startsWith("/dashboard/compare") },
   { href: "/dashboard/advisory", key: "advisory", icon: SparkIcon, match: (p: string) => p.startsWith("/dashboard/advisory") },
   { href: "/dashboard/settings", key: "settings", icon: GearIcon, match: (p: string) => p.startsWith("/dashboard/settings") },
 ] as const;
@@ -266,7 +267,7 @@ function BottomNav() {
             <li key={n.href}>
               <Link href={n.href} aria-current={on ? "page" : undefined} className={`flex h-16 flex-col items-center justify-center gap-1 text-[11px] ${focusRing} ${on ? "font-bold text-accent" : "text-ink/70"}`}>
                 <n.icon className="size-5" />
-                <span className="max-w-full truncate px-0.5">{n.key === "discover" ? t.nav.discoverShort : t.nav[n.key]}</span>
+                <span className="max-w-full truncate px-0.5">{n.key === "discover" ? t.nav.discoverShort : n.key === "compare" ? t.nav.compareShort : t.nav[n.key]}</span>
               </Link>
             </li>
           );

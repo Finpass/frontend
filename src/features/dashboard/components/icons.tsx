@@ -35,3 +35,5 @@ export const BotIcon = (p: P) => <Svg {...p}><rect x="5" y="8" width="14" height
 export const CompassIcon = (p: P) => <Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="m15.5 8.5-2 5-5 2 2-5Z" /></Svg>;
 export const InfoIcon = (p: P) => <Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="M12 11v5M12 8h.01" strokeWidth="2.2" /></Svg>;
 export const StarOutlineIcon = (p: P) => <Svg {...p}><path d="m12 3.5 2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8-4.2-4.1 5.9-.9Z" /></Svg>;
+
+export const CompareIcon = (p: P) => <Svg {...p}><path d="M8 4v16M16 4v16" /><path d="m4.5 8 3.5-4 3.5 4M12.5 16l3.5 4 3.5-4" /></Svg>;

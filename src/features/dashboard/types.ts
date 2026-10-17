@@ -267,6 +267,32 @@ export interface ChatCitation {
   page: number | null;
   sourceType: string;
   key: string;
+  url?: string | null; // news only
+}
+
+/** What the advisor knows about the user: the same facts the backend sends to the AI, no name or contact data. */
+export interface AdvisorContext {
+  profile: {
+    riskProfile: string;
+    ladderLevel: number;
+    sharia: string;
+    horizonYears: number;
+    goal: string | null;
+    goalAmountIDR?: number;
+    incomeIDR: number;
+    expensesIDR: number;
+    surplusIDR: number;
+    installmentIDR: number;
+    savingsIDR: number;
+    investableIDR: number;
+    dependents: number;
+    emergencyMonths: number;
+    emergencyTargetMonths: number;
+    healthCategory?: string;
+    healthScore: number;
+  };
+  holdings: { symbol: string; name: string; assetClass: string; weightPct: number; valueIDR: number }[];
+  recommended: { class: string; allocationPct: number }[];
 }
 
 /** One progress step of a reply, e.g. "Searching OJK and financial statement sources...". */
@@ -303,4 +329,52 @@ export interface ChatReply {
   sessionId: string;
   message: ChatMessage;
   grounded: boolean;
+}
+
+// Product comparison (POST /advice/compare) and the suitability trail (GET /advice/suitability)
+export interface CompareMetrics {
+  return1y: number;
+  volatility: number;
+  sharpe: number | null;
+  positiveMonths: number;
+  per: number | null;
+  pbv: number | null;
+  roe: number | null;
+  divYield: number | null;
+  beta: number | null;
+  expenseRatio: number | null;
+}
+
+export interface CompareAsset {
+  symbol: string;
+  name: string;
+  class: string;
+  classLabel: BiText;
+  sector: string;
+  currency: string;
+  sharia: string;
+  geography: string;
+  volatilityClass: string;
+  liquidity: string;
+  metrics: CompareMetrics;
+  gate: { eligible: boolean; gate?: string; reason?: string };
+  score: { total: number; components: Record<string, number> };
+  series: { d: string; v: number }[] | null; // one year rebased to 100
+  rank: number;
+}
+
+export interface CompareResult {
+  profile: { riskProfile: string; ladderLevel: number; sharia: string; horizon: string };
+  assets: CompareAsset[];
+  best: string;
+  highlights: { key: string; symbol: string; text: BiText }[];
+  notFound: string[];
+  generatedAt: string;
+}
+
+export interface SuitabilityRecord {
+  id: number;
+  kind: "comparison" | "portfolio";
+  payload: Record<string, unknown>;
+  createdAt: string;
 }
