@@ -95,33 +95,49 @@ export interface Slice {
   color: string;
 }
 
-/** Pie as a thick donut with the headline in the middle; each slice is one stroked circle segment. */
+/** Donut with the headline in the middle. Hovering a slice or its legend row highlights it and shows its share instead. */
 export function Donut({ slices, center, sub }: { slices: Slice[]; center: string; sub: string }) {
   const { lang } = useDash();
+  const [hover, setHover] = useState<string | null>(null);
   const R = 15.915; // circumference 100, so dash lengths read as percents
   const total = slices.reduce((s, x) => s + x.pct, 0) || 1;
   const arcs = slices.map((s, i) => {
-    const len = Math.max((s.pct / total) * 100 - 0.6, 0);
+    const len = Math.max((s.pct / total) * 100 - 0.8, 0);
     const start = slices.slice(0, i).reduce((x, y) => x + (y.pct / total) * 100, 0);
     return { s, len, start };
   });
+  const on = slices.find((s) => s.key === hover);
+  const fade = (key: string) => (hover && hover !== key ? 0.35 : 1);
   return (
-    <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center xl:flex-col 2xl:flex-row">
+    <div className="flex w-full flex-col items-center justify-center gap-2 sm:flex-row sm:items-center xl:flex-col 2xl:flex-row">
       <div className="relative size-44 shrink-0">
         <svg viewBox="0 0 42 42" role="img" aria-label={slices.map((s) => `${s.label} ${fmtPct(s.pct, lang, { digits: 1 })}`).join(", ")} className="size-full -rotate-90">
-          <circle cx="21" cy="21" r={R} fill="none" stroke={colors.stroke} strokeWidth="6" />
+          <circle cx="21" cy="21" r={R} fill="none" stroke={colors.stroke} strokeWidth="4.5" opacity="0.5" />
           {arcs.map(({ s, len, start }) => (
-            <circle key={s.key} cx="21" cy="21" r={R} fill="none" stroke={s.color} strokeWidth="6" strokeDasharray={`${len} ${100 - len}`} strokeDashoffset={-start} />
+            <circle
+              key={s.key}
+              cx="21" cy="21" r={R} fill="none" stroke={s.color} strokeLinecap="round"
+              strokeWidth={hover === s.key ? 6 : 4.5}
+              strokeDasharray={`${len} ${100 - len}`} strokeDashoffset={-(start + 0.4)}
+              opacity={fade(s.key)}
+              className="cursor-pointer transition-all duration-200 motion-reduce:transition-none"
+              onPointerEnter={() => setHover(s.key)} onPointerLeave={() => setHover(null)}
+            />
           ))}
         </svg>
-        <div className="absolute inset-0 grid place-content-center text-center">
-          <p className="text-xl font-bold">{center}</p>
-          <p className="text-[11px] text-ink/65">{sub}</p>
+        <div aria-hidden className="pointer-events-none absolute inset-0 grid place-content-center text-center">
+          <p className="text-xl font-bold tracking-tight" style={on ? { color: on.color } : undefined}>{on ? fmtPct(on.pct, lang, { digits: 1 }) : center}</p>
+          <p className="max-w-24 truncate text-[11px] text-ink/65">{on ? on.label : sub}</p>
         </div>
       </div>
-      <ul className="w-full space-y-2 text-sm">
+      <ul className="w-full max-w-56 space-y-0.5 text-sm">
         {slices.map((s) => (
-          <li key={s.key} className="flex items-center justify-between gap-3">
+          <li
+            key={s.key}
+            onPointerEnter={() => setHover(s.key)} onPointerLeave={() => setHover(null)}
+            className={`flex items-center justify-between gap-3 rounded-lg px-2 py-1 transition-colors ${hover === s.key ? "bg-field" : ""}`}
+            style={{ opacity: fade(s.key) }}
+          >
             <span className="flex min-w-0 items-center gap-2"><i aria-hidden className="size-2.5 shrink-0 rounded-full" style={{ background: s.color }} /><span className="truncate">{s.label}</span></span>
             <span className="font-semibold">{fmtPct(s.pct, lang, { digits: 1 })}</span>
           </li>
