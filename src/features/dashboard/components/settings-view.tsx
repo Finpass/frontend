@@ -8,13 +8,16 @@ import { whatsappApi } from "@/features/dashboard/api/dashboard-api";
 import { shortDate } from "@/features/dashboard/lib/format";
 import { useDash, useResource } from "@/features/dashboard/state/use-dash";
 import type { BriefingPreview, WhatsappSettings } from "@/features/dashboard/types";
-import { InlineError, LoadingRegion, PageTitle, Sk, card, focusRing } from "./ui";
+import { ProfileSettings } from "./profile-settings";
+import { InlineError, LoadingRegion, PageTitle, Sk, card, focusRing, selectArrow, selectChevron } from "./ui";
 
 const TIMEZONES = [
   { id: "Asia/Jakarta", label: "WIB (Asia/Jakarta)" },
   { id: "Asia/Makassar", label: "WITA (Asia/Makassar)" },
   { id: "Asia/Jayapura", label: "WIT (Asia/Jayapura)" },
 ];
+
+const selectField = `h-11 w-full rounded-xl border border-stroke bg-field pl-3 text-sm ${selectArrow} ${focusRing}`;
 
 const field = `h-11 w-full rounded-xl border border-stroke bg-field px-3 text-sm ${focusRing}`;
 
@@ -31,6 +34,7 @@ export function SettingsView() {
         </div>
         <LangToggle />
       </section>
+      <ProfileSettings />
       <section aria-labelledby="wa-title" className={`${card} p-5 sm:p-6`}>
         <h2 id="wa-title" className="text-lg font-bold">{t.settings.waTitle}</h2>
         <p className="mt-1 text-sm text-ink/70">{t.settings.waBody}</p>
@@ -114,7 +118,7 @@ function WaForm({ initial, onChanged }: { initial: WhatsappSettings; onChanged: 
         <label htmlFor={`${uid}-time`} className="mb-1.5 block text-sm font-medium">{s.sendTime}</label>
         <div className="flex flex-wrap gap-3">
           <div className="w-40"><input id={`${uid}-time`} type="time" value={time} onChange={(e) => setTime(e.target.value)} className={field} /></div>
-          <div className="min-w-52 flex-1 sm:max-w-xs"><select aria-label={s.timezoneLabel} value={tz} onChange={(e) => setTz(e.target.value)} className={field}>
+          <div className="min-w-52 flex-1 sm:max-w-xs"><select aria-label={s.timezoneLabel} value={tz} onChange={(e) => setTz(e.target.value)} className={selectField} style={{ backgroundImage: selectChevron }}>
             {TIMEZONES.map((z) => <option key={z.id} value={z.id}>{z.label}</option>)}
             {!TIMEZONES.some((z) => z.id === tz) && <option value={tz}>{tz}</option>}
           </select></div>
@@ -125,7 +129,7 @@ function WaForm({ initial, onChanged }: { initial: WhatsappSettings; onChanged: 
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor={`${uid}-freq`} className="mb-1.5 block text-sm font-medium">{s.frequency}</label>
-          <select id={`${uid}-freq`} value={freq} onChange={(e) => setFreq(e.target.value)} className={field}>
+          <select id={`${uid}-freq`} value={freq} onChange={(e) => setFreq(e.target.value)} className={selectField} style={{ backgroundImage: selectChevron }}>
             <option value="daily">{s.freqDaily}</option>
             <option value="weekdays">{s.freqWeekdays}</option>
             <option value="weekly">{s.freqWeekly}</option>
@@ -133,7 +137,7 @@ function WaForm({ initial, onChanged }: { initial: WhatsappSettings; onChanged: 
         </div>
         <div>
           <label htmlFor={`${uid}-wl`} className="mb-1.5 block text-sm font-medium">{s.briefLang}</label>
-          <select id={`${uid}-wl`} value={wl} onChange={(e) => setWl(e.target.value as "id" | "en")} aria-describedby={`${uid}-wlh`} className={field}>
+          <select id={`${uid}-wl`} value={wl} onChange={(e) => setWl(e.target.value as "id" | "en")} aria-describedby={`${uid}-wlh`} className={selectField} style={{ backgroundImage: selectChevron }}>
             <option value="id">Bahasa Indonesia</option>
             <option value="en">English</option>
           </select>
