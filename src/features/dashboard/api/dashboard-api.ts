@@ -44,7 +44,7 @@ export const newsApi = {
 
 export const whatsappApi = {
   get: () => http.get<WhatsappSettings>("/whatsapp/settings"),
-  save: (b: { phone: string; optIn: boolean; sendTimeLocal: string }) => http.put<WhatsappSettings>("/whatsapp/settings", b),
+  save: (b: { phone: string; optIn: boolean; sendTimeLocal: string; frequency: string; timezone: string; language: "id" | "en" }) => http.put<WhatsappSettings>("/whatsapp/settings", b),
   verifyStart: () => http.post<unknown>("/whatsapp/verify/start"),
   verifyConfirm: (code: string) => http.post<unknown>("/whatsapp/verify/confirm", { code }),
   preview: (locale: "id" | "en") => http.get<BriefingPreview>("/briefing/preview", { params: { locale } }),

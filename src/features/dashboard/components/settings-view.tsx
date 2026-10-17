@@ -10,6 +10,12 @@ import { useDash, useResource } from "@/features/dashboard/state/use-dash";
 import type { BriefingPreview, WhatsappSettings } from "@/features/dashboard/types";
 import { InlineError, LoadingRegion, PageTitle, Sk, card, focusRing } from "./ui";
 
+const TIMEZONES = [
+  { id: "Asia/Jakarta", label: "WIB (Asia/Jakarta)" },
+  { id: "Asia/Makassar", label: "WITA (Asia/Makassar)" },
+  { id: "Asia/Jayapura", label: "WIT (Asia/Jayapura)" },
+];
+
 const field = `h-11 w-full rounded-xl border border-stroke bg-field px-3 text-sm ${focusRing}`;
 
 export function SettingsView() {
@@ -31,7 +37,7 @@ export function SettingsView() {
         <div className="mt-5">
           {!res.data && res.error && <InlineError message={userMessage(res.error)} onRetry={res.reload} />}
           {!res.data && !res.error && <LoadingRegion label={t.loading}><Sk className="h-48" /></LoadingRegion>}
-          {res.data && <WaForm key={`${res.data.phone}|${res.data.verified}|${res.data.optIn}|${res.data.sendTimeLocal}`} initial={res.data} onChanged={res.reload} />}
+          {res.data && <WaForm key={`${res.data.phone}|${res.data.verified}|${res.data.optIn}|${res.data.sendTimeLocal}|${res.data.frequency}|${res.data.timezone}|${res.data.language}`} initial={res.data} onChanged={res.reload} />}
         </div>
       </section>
     </div>
@@ -45,13 +51,17 @@ function WaForm({ initial, onChanged }: { initial: WhatsappSettings; onChanged: 
   const [phone, setPhone] = useState(initial.phone ?? "");
   const [optIn, setOptIn] = useState(initial.optIn);
   const [time, setTime] = useState(initial.sendTimeLocal || "07:00");
+  const [freq, setFreq] = useState<string>(initial.frequency || "daily");
+  const [tz, setTz] = useState(initial.timezone || "Asia/Jakarta");
+  const [wl, setWl] = useState<"id" | "en">(initial.language || lang);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [busy, setBusy] = useState<"" | "save" | "start" | "confirm" | "test" | "preview">("");
   const [codeOpen, setCodeOpen] = useState(false);
   const [code, setCode] = useState("");
   const [preview, setPreview] = useState<BriefingPreview | null>(null);
 
-  const dirty = phone.trim() !== (initial.phone ?? "") || optIn !== initial.optIn || time !== (initial.sendTimeLocal || "07:00");
+  const dirty = phone.trim() !== (initial.phone ?? "") || optIn !== initial.optIn || time !== (initial.sendTimeLocal || "07:00")
+    || freq !== (initial.frequency || "daily") || tz !== (initial.timezone || "Asia/Jakarta") || wl !== (initial.language || lang);
   const run = async (k: typeof busy, fn: () => Promise<void>, ok?: string) => {
     setBusy(k);
     setMsg(null);
@@ -72,7 +82,7 @@ function WaForm({ initial, onChanged }: { initial: WhatsappSettings; onChanged: 
   const save = () => {
     if (!phone.trim()) return setMsg({ kind: "err", text: s.phoneRequired });
     void run("save", async () => {
-      await whatsappApi.save({ phone: phone.trim(), optIn, sendTimeLocal: time });
+      await whatsappApi.save({ phone: phone.trim(), optIn, sendTimeLocal: time, frequency: freq, timezone: tz, language: wl });
       onChanged();
     }, s.saved);
   };
@@ -102,8 +112,33 @@ function WaForm({ initial, onChanged }: { initial: WhatsappSettings; onChanged: 
 
       <div>
         <label htmlFor={`${uid}-time`} className="mb-1.5 block text-sm font-medium">{s.sendTime}</label>
-        <input id={`${uid}-time`} type="time" value={time} onChange={(e) => setTime(e.target.value)} className={`${field} w-36`} />
-        <p className="mt-1 text-xs text-ink/60">{s.timezone.replace("{tz}", initial.timezone || "Asia/Jakarta")}</p>
+        <div className="flex flex-wrap gap-3">
+          <div className="w-40"><input id={`${uid}-time`} type="time" value={time} onChange={(e) => setTime(e.target.value)} className={field} /></div>
+          <div className="min-w-52 flex-1 sm:max-w-xs"><select aria-label={s.timezoneLabel} value={tz} onChange={(e) => setTz(e.target.value)} className={field}>
+            {TIMEZONES.map((z) => <option key={z.id} value={z.id}>{z.label}</option>)}
+            {!TIMEZONES.some((z) => z.id === tz) && <option value={tz}>{tz}</option>}
+          </select></div>
+        </div>
+        <p className="mt-1 text-xs text-ink/60">{s.timezone.replace("{tz}", tz)}</p>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <label htmlFor={`${uid}-freq`} className="mb-1.5 block text-sm font-medium">{s.frequency}</label>
+          <select id={`${uid}-freq`} value={freq} onChange={(e) => setFreq(e.target.value)} className={field}>
+            <option value="daily">{s.freqDaily}</option>
+            <option value="weekdays">{s.freqWeekdays}</option>
+            <option value="weekly">{s.freqWeekly}</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor={`${uid}-wl`} className="mb-1.5 block text-sm font-medium">{s.briefLang}</label>
+          <select id={`${uid}-wl`} value={wl} onChange={(e) => setWl(e.target.value as "id" | "en")} aria-describedby={`${uid}-wlh`} className={field}>
+            <option value="id">Bahasa Indonesia</option>
+            <option value="en">English</option>
+          </select>
+          <p id={`${uid}-wlh`} className="mt-1 text-xs text-ink/60">{s.briefLangHint}</p>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -135,7 +170,7 @@ function WaForm({ initial, onChanged }: { initial: WhatsappSettings; onChanged: 
             <button
               type="button"
               disabled={busy !== ""}
-              onClick={() => run("preview", async () => setPreview(await whatsappApi.preview(lang)))}
+              onClick={() => run("preview", async () => setPreview(await whatsappApi.preview(initial.language || lang)))}
               className={`rounded-xl border border-stroke px-4 py-2 text-sm font-semibold text-ink disabled:opacity-50 ${focusRing}`}
             >
               {busy === "preview" ? s.previewLoading : s.preview}
