@@ -170,3 +170,82 @@ export interface BriefingPreview {
   charCount: number;
   trace: unknown;
 }
+
+// ---- Discover (docs/discover-contract.md section 2)
+export type DiscoverSort = "marketCap" | "lastPrice" | "ret7d" | "ret1y" | "divYield" | "name";
+export type SortDir = "asc" | "desc";
+
+export interface DiscoverItem {
+  symbol: string;
+  name: string;
+  assetClass: string;
+  assetClassLabelId: string;
+  assetClassLabelEn: string;
+  exchange: string | null;
+  currency: string;
+  lastPrice: number | null;
+  lastTradeDate: string | null;
+  ret7d: number | null;
+  ret1y: number | null;
+  marketCap: number | null;
+  analystTarget: null;
+  valuation: { metric: "PE" | "PB" | "PS"; value: number } | null;
+  growth: { metric: "E" | "R"; pct: number } | null;
+  divYieldPct: number | null;
+  industry: string | null;
+  starred: boolean;
+}
+
+export interface DiscoverPage {
+  items: DiscoverItem[];
+  nextCursor: string | null;
+  total: number;
+  asOf: string | null;
+}
+
+export interface DiscoverFacets {
+  classes: { value: string; labelId: string; labelEn: string; count: number }[];
+  exchanges: { value: string; count: number }[];
+  industries: { value: string; count: number }[];
+}
+
+/** Typed from GET /advice/products (backend matching slice). */
+export interface BiText {
+  id: string;
+  en: string;
+}
+
+export interface ProductAsset {
+  ticker: string;
+  name: string;
+  kind: "asset" | "instrument";
+  weight: number;
+  score: number | null;
+  sector?: string;
+  held: boolean;
+  reason: BiText;
+}
+
+export interface ProductClass {
+  class: string;
+  label: BiText;
+  allocation: number;
+  currentPct: number;
+  unallocated: number;
+  assets: ProductAsset[];
+}
+
+export interface ProductsResult {
+  profile: { riskProfile: string; ladderLevel: number; sharia: string; horizon: string };
+  investable: boolean;
+  portfolio: ProductClass[];
+  flags: { code: string; text: BiText }[];
+  trace: {
+    targetAllocation: { profile: string; modifiers: string[]; target: Record<string, number> };
+    gatesApplied: { gate: string; excluded: number }[];
+    shortlist: { class: string; eligible: number; kept: number }[];
+    diversificationActions: string[];
+  };
+  summary: BiText;
+  generatedAt: string;
+}

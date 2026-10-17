@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, type KeyboardEvent, type ReactNode } from "react";
+import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { focusRing } from "@/features/profile/components/common";
 import { pct } from "@/features/dashboard/lib/format";
 import { useDash } from "@/features/dashboard/state/use-dash";
-import { ArrowIcon } from "./icons";
+import { useDismiss } from "@/features/dashboard/state/use-dismiss";
+import { ArrowIcon, BriefcaseIcon, ChevronIcon, UserIcon } from "./icons";
 
 export { focusRing };
 
@@ -73,22 +74,42 @@ export function Tabs<T extends string>({ group, label, value, options, onChange,
   );
 }
 
-export function ViewSwitch({ active }: { active: "profile" | "portfolio" }) {
+export function ViewSwitch({ active }: { active: "profile" | "portfolio" | "recommended" }) {
   const { t } = useDash();
-  const item = (href: string, on: boolean, label: string, icon: ReactNode) => (
-    <Link
-      href={href}
-      aria-current={on ? "page" : undefined}
-      className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold sm:px-4 ${focusRing} ${on ? "bg-accent text-primary-ink" : "text-ink hover:bg-surface"}`}
-    >
-      {icon}
-      {label}
-    </Link>
-  );
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useDismiss(ref, open, () => setOpen(false));
+  const onPortfolio = active !== "profile";
+  const tab = "inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold sm:px-4";
+  const opts = [
+    { href: "/dashboard/portfolio", on: active === "portfolio", label: t.match.viewReal },
+    { href: "/dashboard/portfolio/recommended", on: active === "recommended", label: t.match.viewRec },
+  ];
   return (
     <nav aria-label={t.home.switchLabel} className="inline-flex rounded-xl border border-stroke bg-field p-0.5">
-      {item("/dashboard", active === "profile", t.home.profile, <span aria-hidden className="size-4 rounded-full border-2 border-current" />)}
-      {item("/dashboard/portfolio", active === "portfolio", t.home.portfolio, <span aria-hidden className="size-4 rounded-[4px] border-2 border-current" />)}
+      <Link href="/dashboard" aria-current={active === "profile" ? "page" : undefined} className={`${tab} ${focusRing} ${active === "profile" ? "bg-accent text-primary-ink" : "text-ink hover:bg-surface"}`}>
+        <UserIcon aria-hidden className="size-4" />
+        {t.home.profile}
+      </Link>
+      <div ref={ref} className="relative">
+        <button type="button" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)} className={`${tab} ${focusRing} ${onPortfolio ? "bg-accent text-primary-ink" : "text-ink hover:bg-surface"}`}>
+          <BriefcaseIcon aria-hidden className="size-4" />
+          {t.home.portfolio}
+          <ChevronIcon aria-hidden className={`size-4 transition-transform ${open ? "rotate-180" : ""}`} />
+        </button>
+        {open && (
+          <ul role="menu" className="absolute right-0 top-full z-30 mt-2 w-60 rounded-xl border border-stroke bg-surface p-1 shadow-xl">
+            {opts.map((o) => (
+              <li key={o.href} role="none">
+                <Link role="menuitemradio" aria-checked={o.on} href={o.href} onClick={() => setOpen(false)} className={`flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm ${focusRing} ${o.on ? "bg-accent/15 font-semibold text-accent" : "text-ink hover:bg-card"}`}>
+                  {o.label}
+                  {o.on && <span aria-hidden>{"\u2713"}</span>}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </nav>
   );
 }

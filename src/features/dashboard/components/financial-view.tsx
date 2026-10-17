@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { colors } from "@/design-system/colors";
+import { useAuth } from "@/features/auth/state/auth-context";
+import { profileApi } from "@/features/profile/api/profile-api";
+import { SummaryModal } from "@/features/profile/components/summary-modal";
 import { userMessage } from "@/lib/api-error";
 import { dashboardApi } from "@/features/dashboard/api/dashboard-api";
 import { idr } from "@/features/dashboard/lib/format";
@@ -122,6 +126,15 @@ function TrendCard({ d, range, onRange, busy }: { d: HomeData; range: HomeRange;
 
 function SummaryCard({ d }: { d: HomeData }) {
   const { t } = useDash();
+  const router = useRouter();
+  const { user } = useAuth();
+  const [open, setOpen] = useState(false);
+  const prof = useResource(`profile:${user?.id ?? ""}`, () => profileApi.get());
+  const shown = prof.data?.status === "completed" ? prof.data : null;
+  const leave = async (fn: () => Promise<unknown>) => {
+    await fn();
+    router.push("/onboarding");
+  };
   const s = d.financialSummary;
   const rows: [string, string, boolean?][] = [
     [t.fin.income, idr(s.monthlyIncome)],
@@ -135,7 +148,7 @@ function SummaryCard({ d }: { d: HomeData }) {
     <section aria-labelledby="fin-title" className={`${card} p-5 sm:p-6`}>
       <div className="flex items-center justify-between gap-3 border-b border-stroke pb-4">
         <h2 id="fin-title" className="text-lg font-bold">{t.fin.title}</h2>
-        <Link href="/onboarding" className={`rounded text-sm font-medium text-accent ${focusRing}`}>{t.fin.detail} <span aria-hidden>{"→"}</span></Link>
+        <button type="button" onClick={() => setOpen(true)} disabled={!shown} className={`rounded text-sm font-medium text-accent disabled:opacity-50 ${focusRing}`}>{t.fin.detail} <span aria-hidden>{"→"}</span></button>
       </div>
       <dl className="divide-y divide-stroke/60 text-sm">
         {rows.map(([k, v, good]) => (
@@ -145,6 +158,16 @@ function SummaryCard({ d }: { d: HomeData }) {
           </div>
         ))}
       </dl>
+      {open && shown?.result && (
+        <SummaryModal
+          compact
+          result={shown.result}
+          canRetake={shown.canRetake}
+          onRetake={() => leave(profileApi.retake)}
+          onDelete={() => leave(profileApi.remove)}
+          onClose={() => setOpen(false)}
+        />
+      )}
     </section>
   );
 }
