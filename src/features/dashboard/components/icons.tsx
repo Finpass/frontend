@@ -32,3 +32,6 @@ export const TrendIcon = (p: P) => <Svg {...p}><path d="m4 16 5-5 4 3 7-8" /><pa
 export const CoinIcon = (p: P) => <Svg {...p}><circle cx="12" cy="12" r="8" /><path d="M12 8v8M9.5 10.5c0-1 1-1.5 2.5-1.5s2.5.5 2.5 1.5-1 1.4-2.5 1.5-2.5.5-2.5 1.5 1 1.5 2.5 1.5 2.5-.5 2.5-1.5" /></Svg>;
 export const BarsIcon = (p: P) => <Svg {...p}><path d="M6 20v-6M12 20V6M18 20v-9" /></Svg>;
 export const BotIcon = (p: P) => <Svg {...p}><rect x="5" y="8" width="14" height="11" rx="3" /><path d="M12 8V5M9.5 13h.01M14.5 13h.01" strokeWidth="2.4" /></Svg>;
+export const CompassIcon = (p: P) => <Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="m15.5 8.5-2 5-5 2 2-5Z" /></Svg>;
+export const InfoIcon = (p: P) => <Svg {...p}><circle cx="12" cy="12" r="8.5" /><path d="M12 11v5M12 8h.01" strokeWidth="2.2" /></Svg>;
+export const StarOutlineIcon = (p: P) => <Svg {...p}><path d="m12 3.5 2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8-4.2-4.1 5.9-.9Z" /></Svg>;
