@@ -167,8 +167,10 @@ function Sidebar() {
   const { t } = useDash();
   const pathname = usePathname();
   const { plan } = useChrome();
+  // the chat page has its own three-column layout, so the menu shrinks to an icon rail there
+  const rail = pathname.startsWith("/dashboard/advisory");
   return (
-    <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 shrink-0 flex-col border-r border-stroke px-4 py-5 lg:flex">
+    <aside className={`sticky top-16 hidden h-[calc(100vh-4rem)] shrink-0 flex-col border-r border-stroke py-5 lg:flex ${rail ? "w-[4.5rem] px-3" : "w-64 px-4"}`}>
       <nav aria-label={t.nav.label}>
         <ul className="space-y-1">
           {NAV.map((n) => {
@@ -178,10 +180,11 @@ function Sidebar() {
                 <Link
                   href={n.href}
                   aria-current={on ? "page" : undefined}
-                  className={`flex h-11 items-center gap-3 border-l-2 px-3 text-sm ${focusRing} ${on ? "rounded-r-xl border-accent bg-accent/10 font-bold text-accent" : "rounded-xl border-transparent text-ink/70 hover:bg-surface hover:text-ink"}`}
+                  title={rail ? t.nav[n.key] : undefined}
+                  className={`flex h-11 items-center gap-3 border-l-2 text-sm ${rail ? "justify-center px-0" : "px-3"} ${focusRing} ${on ? "rounded-r-xl border-accent bg-accent/10 font-bold text-accent" : "rounded-xl border-transparent text-ink/70 hover:bg-surface hover:text-ink"}`}
                 >
                   <n.icon />
-                  {t.nav[n.key]}
+                  <span className={rail ? "sr-only" : undefined}>{t.nav[n.key]}</span>
                 </Link>
               </li>
             );
@@ -189,20 +192,20 @@ function Sidebar() {
         </ul>
       </nav>
       <div className="mt-auto space-y-3">
-        <div className="flex items-center gap-3 rounded-xl border border-stroke bg-card p-3">
+        <div className={`flex items-center gap-3 rounded-xl border border-stroke bg-card ${rail ? "justify-center p-2" : "p-3"}`} title={rail ? `${t.account.status}: ${plan}` : undefined}>
           <span className="grid size-10 place-items-center rounded-lg bg-accent/15 text-accent"><StarIcon className="size-5" /></span>
-          <div className="text-xs">
+          <div className={rail ? "sr-only" : "text-xs"}>
             <p className="text-ink/60">{t.account.status}</p>
             <p className="font-bold text-accent">{plan}</p>
           </div>
         </div>
-        <div className="border-t border-stroke pt-3"><UserMenu /></div>
+        <div className="border-t border-stroke pt-3"><UserMenu compact={rail} rail={rail} /></div>
       </div>
     </aside>
   );
 }
 
-function UserMenu({ compact }: { compact?: boolean }) {
+function UserMenu({ compact, rail }: { compact?: boolean; rail?: boolean }) {
   const { t } = useDash();
   const { user, signOut } = useAuth();
   const router = useRouter();
@@ -224,7 +227,7 @@ function UserMenu({ compact }: { compact?: boolean }) {
         aria-expanded={open}
         aria-label={compact ? `${t.account.menu}: ${name}` : undefined}
         onClick={() => setOpen((o) => !o)}
-        className={`flex items-center gap-3 rounded-xl text-left ${compact ? "" : "w-full px-1 py-1"} ${focusRing}`}
+        className={`flex items-center gap-3 rounded-xl text-left ${compact ? (rail ? "mx-auto" : "") : "w-full px-1 py-1"} ${focusRing}`}
       >
         {compact ? (
           <span className="grid size-10 place-items-center rounded-full bg-accent/20 text-sm font-bold text-accent">{name.slice(0, 1).toUpperCase() || "?"}</span>
@@ -239,7 +242,7 @@ function UserMenu({ compact }: { compact?: boolean }) {
         )}
       </button>
       {open && (
-        <div role="menu" aria-label={t.account.menu} className={`absolute z-40 w-56 rounded-xl border border-stroke bg-surface p-1 shadow-xl ${compact ? "right-0 top-12" : "bottom-full left-0 mb-2"}`}>
+        <div role="menu" aria-label={t.account.menu} className={`absolute z-40 w-56 rounded-xl border border-stroke bg-surface p-1 shadow-xl ${rail ? "bottom-full left-0 mb-2" : compact ? "right-0 top-12" : "bottom-full left-0 mb-2"}`}>
           {compact && <p className="truncate px-3 py-2 text-xs text-ink/60">{user?.email}</p>}
           <button type="button" role="menuitem" autoFocus disabled={busy} onClick={out} className={`w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-paper ${focusRing}`}>
             {busy ? t.account.signingOut : t.account.signOut}
