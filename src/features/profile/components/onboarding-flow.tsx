@@ -1,5 +1,6 @@
 "use client";
 
+import { Brand } from "@/components/brand";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,7 +15,6 @@ import { followupVisible, validateSection, type Issues } from "@/features/profil
 import { ConsentStep } from "./consent-step";
 import { ErrorPanel, LangToggle, PageSkeleton, focusRing } from "./common";
 import { FollowupField, QuestionField } from "./question-field";
-import { SummaryModal } from "./summary-modal";
 
 export function OnboardingFlow() {
   return (
@@ -31,7 +31,7 @@ function Shell() {
       <header className="flex h-16 items-center justify-between gap-4 border-b border-stroke px-5 sm:px-12">
         <div className="flex min-w-0 items-center gap-4">
           <Link href="/" className={`font-display text-xl uppercase tracking-wide ${focusRing}`}>
-            Finpass<span className="text-gain">.</span>
+            <Brand />
           </Link>
           <span aria-hidden className="hidden h-5 w-px bg-stroke sm:block" />
           <p className="hidden truncate text-xs uppercase tracking-widest text-ink/60 sm:block">{t.tagline}</p>
@@ -76,15 +76,18 @@ function Profile() {
   const router = useRouter();
   const { lang, t } = useProfileLang();
   const p = useProfile(lang);
+  const finished = p.stage === "result" && Boolean(p.result);
+  // a finished (or already completed) profile has nothing left to fill in: the dashboard shows the result
+  useEffect(() => {
+    if (finished) router.replace("/dashboard");
+  }, [finished, router]);
 
   if (p.phase === "loading") return <Centered><PageSkeleton /></Centered>;
   if (p.phase === "error" || !p.questionnaire || !p.profile) {
     return <Centered><ErrorPanel message={p.loadError ? userMessage(p.loadError) : t.loadError} onRetry={p.load} /></Centered>;
   }
   if (p.stage === "consent") return <Centered><ConsentStep onAccept={p.acceptConsent} /></Centered>;
-  if (p.stage === "result" && p.result) {
-    return <SummaryModal result={p.result} canRetake={p.profile.canRetake} onRetake={p.retake} onDelete={p.remove} onClose={() => router.push("/dashboard")} />;
-  }
+  if (finished) return <Centered><PageSkeleton /></Centered>;
   return <Wizard p={p} />;
 }
 
