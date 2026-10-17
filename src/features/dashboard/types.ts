@@ -162,6 +162,10 @@ export interface WhatsappSettings {
   sendTimeLocal: string;
   timezone: string;
   lastSentAt: string | null;
+  frequency: "daily" | "weekdays" | "weekly";
+  language: "id" | "en";
+  paused: boolean;
+  deliveryIssue: boolean;
 }
 
 export interface BriefingPreview {
@@ -248,4 +252,50 @@ export interface ProductsResult {
   };
   summary: BiText;
   generatedAt: string;
+}
+
+export type ChatRole = "user" | "assistant";
+
+export interface ChatCitation {
+  n: number;
+  title: string;
+  page: number | null;
+  sourceType: string;
+  key: string;
+}
+
+/** One progress step of a reply, e.g. "Searching OJK and financial statement sources...". */
+export interface TurnEvent {
+  sequence: number;
+  title: string;
+  type: "processing" | "result" | "error";
+  status: "in_progress" | "done" | "failed";
+  timestamp: string;
+}
+
+export interface ChatMessage {
+  id: number | string;
+  role: ChatRole;
+  content: string;
+  citations: ChatCitation[] | null;
+  turns?: TurnEvent[];
+  createdAt: string;
+}
+
+export interface ChatSessionItem {
+  id: string;
+  title: string;
+  updatedAt: string;
+}
+
+export interface ChatSession {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
+}
+
+export interface ChatReply {
+  sessionId: string;
+  message: ChatMessage;
+  grounded: boolean;
 }
