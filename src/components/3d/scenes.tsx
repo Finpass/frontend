@@ -21,7 +21,7 @@ function Tilt({ children, amount = 0.15 }: { children: ReactNode; amount?: numbe
 
 const ISO: [number, number, number] = [7.2, 5.7, 8.8];
 // hero shows the full orbit rings, so pull the camera back along the same view direction
-const HERO_CAM = ISO.map((v) => v * 1.32) as [number, number, number];
+const HERO_CAM = ISO.map((v) => v * 1.08) as [number, number, number];
 const topTop = () => stepHeight(4) - 1.2;
 
 export function HeroScene({ className = "", label }: { className?: string; label: string }) {

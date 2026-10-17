@@ -76,3 +76,12 @@ body::after {
     animation: none;
   }
 }
+
+/* keep the field look when the browser autofills */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-ink);
+  caret-color: var(--color-ink);
+  transition: background-color 600000s 0s, color 600000s 0s;
+}

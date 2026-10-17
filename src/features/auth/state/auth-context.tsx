@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { setAccessTokenGetter } from "@/lib/http";
 import { authApi } from "@/features/auth/api/auth-api";
@@ -26,6 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [modal, setModal] = useState<AuthView | null>(null);
   const token = useRef<string | null>(null);
+  const router = useRouter();
 
   const apply = useCallback((s: Session | null) => {
     token.current = s?.accessToken ?? null;
@@ -71,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           onAuthed={(s) => {
             apply(s);
             setModal(null);
+            router.push("/dashboard");
             toast.success(`Welcome, ${s.user.name}`);
           }}
         />
