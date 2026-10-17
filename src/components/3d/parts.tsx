@@ -363,22 +363,47 @@ export function Orb({
   );
 }
 
-const clay = (color: string) => (
-  <meshPhysicalMaterial color={color} metalness={0.35} roughness={0.2} clearcoat={1} clearcoatRoughness={0.1} />
+const PERI = "#8ea2ff";
+const TEAL = "#2dd4bf";
+
+// luminous clay: emissive keeps the props readable on the dark page, clearcoat gives the glossy orb look
+const glossy = (color: string, glow = 0.45) => (
+  <meshPhysicalMaterial
+    color={color}
+    emissive={color}
+    emissiveIntensity={glow}
+    metalness={0.05}
+    roughness={0.18}
+    clearcoat={1}
+    clearcoatRoughness={0.06}
+    iridescence={0.5}
+    iridescenceIOR={1.5}
+  />
 );
+const white = <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.6} toneMapped={false} />;
+
+const shieldShape = (() => {
+  const s = new THREE.Shape();
+  s.moveTo(-0.62, 0.78);
+  s.lineTo(0.62, 0.78);
+  s.lineTo(0.62, 0.05);
+  s.quadraticCurveTo(0.62, -0.5, 0, -0.9);
+  s.quadraticCurveTo(-0.62, -0.5, -0.62, 0.05);
+  s.closePath();
+  return s;
+})();
 
 export function Shield() {
   return (
     <group>
-      <RoundedBox args={[1.2, 1.4, 0.35]} radius={0.3} smoothness={6}>{clay("#1a2550")}</RoundedBox>
-      <mesh position={[0, -0.7, 0]} rotation={[0, 0, Math.PI]}>
-        <coneGeometry args={[0.6, 0.6, 3]} />
-        {clay("#1a2550")}
+      <mesh position={[0, 0, -0.14]}>
+        <extrudeGeometry args={[shieldShape, { depth: 0.28, bevelEnabled: true, bevelSize: 0.08, bevelThickness: 0.08, bevelSegments: 6, curveSegments: 24 }]} />
+        {glossy(PERI)}
       </mesh>
-      <mesh position={[0, 0.05, 0.2]}>
-        <torusGeometry args={[0.25, 0.07, 12, 32]} />
-        <meshStandardMaterial color={ACCENT} emissive={ACCENT} emissiveIntensity={0.8} toneMapped={false} />
-      </mesh>
+      <group position={[0, -0.02, 0.26]} rotation={[0, 0, 0.0]}>
+        <RoundedBox args={[0.14, 0.4, 0.08]} radius={0.04} position={[-0.17, -0.06, 0]} rotation={[0, 0, 0.8]}>{white}</RoundedBox>
+        <RoundedBox args={[0.14, 0.7, 0.08]} radius={0.04} position={[0.14, 0.04, 0]} rotation={[0, 0, -0.8]}>{white}</RoundedBox>
+      </group>
     </group>
   );
 }
@@ -389,20 +414,21 @@ export function CoinStack() {
       {[0, 1, 2, 3].map((i) => (
         <Coin key={i} scale={0.7} position={[(i % 2) * 0.1, -0.5 + i * 0.3, 0]} />
       ))}
-      <mesh position={[0.9, -0.4, 0]}>
-        <sphereGeometry args={[0.4, 24, 24]} />
-        {clay(ACCENT)}
+      <mesh position={[0.85, -0.35, 0.3]}>
+        <sphereGeometry args={[0.38, 32, 32]} />
+        {glossy(PERI, 0.6)}
       </mesh>
     </group>
   );
 }
 
 export function Bars() {
+  const cols = ["#5b73e8", PERI, TEAL];
   return (
     <group position={[-0.7, -0.6, 0]}>
       {[0.6, 1.0, 1.5].map((h, i) => (
-        <RoundedBox key={i} args={[0.4, h, 0.4]} radius={0.1} position={[i * 0.7, h / 2, 0]}>
-          {clay(i === 2 ? ACCENT : "#1f2b63")}
+        <RoundedBox key={i} args={[0.4, h, 0.4]} radius={0.12} smoothness={6} position={[i * 0.7, h / 2, 0]}>
+          {glossy(cols[i])}
         </RoundedBox>
       ))}
     </group>
@@ -412,15 +438,72 @@ export function Bars() {
 export function KeyHouse() {
   return (
     <group>
-      <RoundedBox args={[1.2, 0.9, 0.9]} radius={0.12} position={[0, -0.2, 0]}>{clay("#1b2759")}</RoundedBox>
-      <mesh position={[0, 0.55, 0]} rotation={[0, Math.PI / 4, 0]}>
+      <RoundedBox args={[1.2, 0.9, 0.9]} radius={0.14} smoothness={6} position={[0, -0.25, 0]}>{glossy(PERI)}</RoundedBox>
+      <mesh position={[0, 0.5, 0]} rotation={[0, Math.PI / 4, 0]} scale={[1, 1, 1]}>
         <coneGeometry args={[1, 0.7, 4]} />
-        {clay("#1a2550")}
+        {glossy("#5b73e8")}
       </mesh>
-      <mesh position={[0.9, -0.5, 0.5]} rotation={[0, 0, 0.6]}>
+      <RoundedBox args={[0.3, 0.5, 0.06]} radius={0.05} position={[0, -0.45, 0.47]}>{white}</RoundedBox>
+      <mesh position={[0.9, -0.55, 0.5]} rotation={[0, 0, 0.6]}>
         <torusGeometry args={[0.2, 0.06, 12, 24]} />
-        <meshStandardMaterial color={GOLD} metalness={1} roughness={0.3} />
+        <meshStandardMaterial color={GOLD} metalness={1} roughness={0.25} emissive={GOLD} emissiveIntensity={0.25} />
       </mesh>
+    </group>
+  );
+}
+
+/** Profile form: a card with lines and a check badge. */
+export function Doc() {
+  return (
+    <group>
+      <RoundedBox args={[1.1, 1.4, 0.2]} radius={0.12} smoothness={6}>{glossy(PERI)}</RoundedBox>
+      {[0.35, 0.05, -0.25].map((y, i) => (
+        <RoundedBox key={y} args={[i === 2 ? 0.4 : 0.7, 0.1, 0.06]} radius={0.04} position={[i === 2 ? -0.15 : 0, y, 0.13]}>{white}</RoundedBox>
+      ))}
+      <mesh position={[0.45, -0.55, 0.2]}>
+        <sphereGeometry args={[0.26, 24, 24]} />
+        {glossy(TEAL, 0.6)}
+      </mesh>
+    </group>
+  );
+}
+
+/** Risk gauge: a half ring with a needle. */
+export function Gauge() {
+  return (
+    <group position={[0, -0.25, 0]}>
+      <mesh>
+        <torusGeometry args={[0.8, 0.17, 20, 48, Math.PI]} />
+        {glossy(PERI)}
+      </mesh>
+      <mesh rotation={[0, 0, Math.PI * 0.18]}>
+        <torusGeometry args={[0.8, 0.175, 20, 16, Math.PI * 0.34]} />
+        {glossy(TEAL, 0.6)}
+      </mesh>
+      <RoundedBox args={[0.1, 0.72, 0.1]} radius={0.05} position={[0.26, 0.26, 0]} rotation={[0, 0, -0.75]}>{white}</RoundedBox>
+      <mesh>
+        <sphereGeometry args={[0.16, 24, 24]} />
+        <meshStandardMaterial color={GOLD} metalness={1} roughness={0.25} emissive={GOLD} emissiveIntensity={0.25} />
+      </mesh>
+    </group>
+  );
+}
+
+/** Briefing: a chat bubble with three dots. */
+export function Chat() {
+  return (
+    <group>
+      <RoundedBox args={[1.6, 1.05, 0.3]} radius={0.3} smoothness={8}>{glossy(TEAL, 0.5)}</RoundedBox>
+      <mesh position={[-0.45, -0.62, 0]} rotation={[0, 0, Math.PI + 0.35]}>
+        <coneGeometry args={[0.24, 0.34, 3]} />
+        {glossy(TEAL, 0.5)}
+      </mesh>
+      {[-0.35, 0, 0.35].map((x) => (
+        <mesh key={x} position={[x, 0, 0.19]}>
+          <sphereGeometry args={[0.09, 16, 16]} />
+          {white}
+        </mesh>
+      ))}
     </group>
   );
 }

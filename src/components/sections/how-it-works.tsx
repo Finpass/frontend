@@ -4,7 +4,7 @@ import { useT } from "@/lib/i18n";
 import { Card, Reveal, Section } from "@/components/ui/ui";
 import { PropScene, type PropKind } from "@/components/3d/scenes";
 
-const icons: PropKind[] = ["key", "shield", "bars"];
+const icons: PropKind[] = ["doc", "gauge", "chat"];
 
 export function HowItWorks() {
   const { d } = useT();

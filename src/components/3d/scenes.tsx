@@ -6,7 +6,7 @@ import { Float } from "@react-three/drei";
 import * as THREE from "three";
 import { Scene3D } from "./Scene3D";
 import { Poster } from "./Poster";
-import { Bars, CoinCharacter, CoinStack, GlowDisc, KeyHouse, Orb, OrbitRing, Shield, Sparkle, Step, stepHeight, stepX, stepZ } from "./parts";
+import { Bars, Chat, CoinCharacter, CoinStack, Doc, Gauge, GlowDisc, KeyHouse, Orb, OrbitRing, Shield, Sparkle, Step, stepHeight, stepX, stepZ } from "./parts";
 
 /** Mouse-parallax tilt wrapper. */
 function Tilt({ children, amount = 0.15 }: { children: ReactNode; amount?: number }) {
@@ -76,7 +76,7 @@ export function LadderScene({
   );
 }
 
-export type PropKind = "shield" | "piggy" | "bars" | "key";
+export type PropKind = "shield" | "piggy" | "bars" | "key" | "doc" | "gauge" | "chat";
 
 export function PropScene({ kind, label, className = "" }: { kind: PropKind; label: string; className?: string }) {
   return (
@@ -87,6 +87,9 @@ export function PropScene({ kind, label, className = "" }: { kind: PropKind; lab
           {kind === "piggy" && <CoinStack />}
           {kind === "bars" && <Bars />}
           {kind === "key" && <KeyHouse />}
+          {kind === "doc" && <Doc />}
+          {kind === "gauge" && <Gauge />}
+          {kind === "chat" && <Chat />}
         </Float>
       )}
     </Scene3D>
