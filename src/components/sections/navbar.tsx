@@ -1,5 +1,6 @@
 "use client";
 
+import { Brand } from "@/components/brand";
 import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { Button } from "@/components/ui/ui";
@@ -13,7 +14,7 @@ export function Navbar() {
     <header className="fixed inset-x-0 top-3 z-50 px-3 sm:top-4 sm:px-6">
       <nav aria-label="Primary" className="mx-auto flex h-16 max-w-6xl items-center justify-between rounded-full border border-ink/10 bg-card/70 px-5 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.8)] backdrop-blur-xl sm:px-6">
         <a href="#top" className="font-display text-xl uppercase tracking-wide">
-          Finpass<span className="text-gain">.</span>
+          <Brand />
         </a>
         <ul className="hidden items-center gap-6 text-sm font-semibold lg:flex">
           {d.nav.links.map((l) => (

@@ -1,5 +1,6 @@
 "use client";
 
+import { Brand } from "@/components/brand";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -101,7 +102,7 @@ function ProfileGuard({ children }: { children: ReactNode }) {
 function Logo() {
   return (
     <Link href="/" className={`font-display text-xl uppercase tracking-wide ${focusRing}`}>
-      Finpass<span className="text-gain">.</span>
+      <Brand />
     </Link>
   );
 }
@@ -181,7 +182,7 @@ function Sidebar() {
                   href={n.href}
                   aria-current={on ? "page" : undefined}
                   title={rail ? t.nav[n.key] : undefined}
-                  className={`flex h-11 items-center gap-3 border-l-2 text-sm ${rail ? "justify-center px-0" : "px-3"} ${focusRing} ${on ? "rounded-r-xl border-accent bg-accent/10 font-bold text-accent" : "rounded-xl border-transparent text-ink/70 hover:bg-surface hover:text-ink"}`}
+                  className={`flex h-11 items-center gap-3 border-l-2 text-sm ${rail ? "justify-center px-0" : "px-3"} ${focusRing} ${on ? "rounded-none border-accent bg-accent/10 font-bold text-accent" : "rounded-xl border-transparent text-ink/70 hover:bg-surface hover:text-ink"}`}
                 >
                   <n.icon />
                   <span className={rail ? "sr-only" : undefined}>{t.nav[n.key]}</span>

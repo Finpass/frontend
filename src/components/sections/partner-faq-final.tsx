@@ -1,5 +1,6 @@
 "use client";
 
+import { Brand } from "@/components/brand";
 import { useT } from "@/lib/i18n";
 import { Button, Chip, Reveal, Section } from "@/components/ui/ui";
 import { HeroScene } from "@/components/3d/scenes";
@@ -59,7 +60,7 @@ export function Footer() {
   return (
     <footer className="border-t border-ink/10 bg-paper px-4 pb-24 pt-8 text-ink/60 sm:px-6 sm:pb-8">
       <div className="mx-auto max-w-6xl text-sm">
-        <p className="font-display text-xl uppercase text-ink">{d.brand}</p>
+        <p className="font-display text-xl uppercase text-ink"><Brand name={d.brand} /></p>
         <p className="mt-3 max-w-2xl">{d.footer.disclaimer}</p>
         <p className="mt-4 text-xs">© {d.brand}. {d.footer.rights}</p>
       </div>
