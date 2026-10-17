@@ -111,6 +111,7 @@ const id = {
     deleting: "Menghapus...",
     deleted: "Data Anda telah dihapus.",
     goDashboard: "Buka dashboard",
+    close: "Tutup",
   },
 };
 
@@ -225,6 +226,7 @@ const en: Dict = {
     deleting: "Deleting...",
     deleted: "Your data has been deleted.",
     goDashboard: "Go to dashboard",
+    close: "Close",
   },
 };
 

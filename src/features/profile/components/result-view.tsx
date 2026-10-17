@@ -20,8 +20,8 @@ const card = "rounded-2xl border border-stroke bg-card p-5 sm:p-6";
 const pct = (n: number) => Math.min(Math.max(n, 0), 100);
 
 export function ResultView({
-  result, canRetake, onRetake, onDelete,
-}: { result: Result; canRetake: CanRetake; onRetake: () => Promise<void>; onDelete: () => Promise<void> }) {
+  result, canRetake, onRetake, onDelete, hideDashboardLink,
+}: { result: Result; canRetake: CanRetake; onRetake: () => Promise<void>; onDelete: () => Promise<void>; hideDashboardLink?: boolean }) {
   const { lang, t } = useProfileLang();
   const r = t.result;
   const [busy, setBusy] = useState<"retake" | "delete" | null>(null);
@@ -51,7 +51,7 @@ export function ResultView({
 
   return (
     <div className="space-y-6">
-      <header>
+      <header className="pr-10">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">{r.title}</h1>
         <p className="mt-2 text-ink/70">{r.subtitle}</p>
       </header>
@@ -159,9 +159,11 @@ export function ResultView({
       </section>
 
       <div className="flex flex-col gap-3 pb-8 sm:flex-row sm:items-center">
-        <Link href="/dashboard" className={`flex h-12 items-center justify-center rounded-xl bg-primary px-6 font-semibold text-primary-ink ${focusRing}`}>
-          {r.goDashboard}
-        </Link>
+        {!hideDashboardLink && (
+          <Link href="/dashboard" className={`flex h-12 items-center justify-center rounded-xl bg-primary px-6 font-semibold text-primary-ink ${focusRing}`}>
+            {r.goDashboard}
+          </Link>
+        )}
         <div>
           <button
             type="button"

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/state/auth-context";
 import { notifyError } from "@/lib/notify-error";
 import { userMessage } from "@/lib/api-error";
@@ -13,7 +14,7 @@ import { followupVisible, validateSection, type Issues } from "@/features/profil
 import { ConsentStep } from "./consent-step";
 import { ErrorPanel, LangToggle, PageSkeleton, focusRing } from "./common";
 import { FollowupField, QuestionField } from "./question-field";
-import { ResultView } from "./result-view";
+import { SummaryModal } from "./summary-modal";
 
 export function OnboardingFlow() {
   return (
@@ -72,6 +73,7 @@ function Gate() {
 }
 
 function Profile() {
+  const router = useRouter();
   const { lang, t } = useProfileLang();
   const p = useProfile(lang);
 
@@ -81,7 +83,7 @@ function Profile() {
   }
   if (p.stage === "consent") return <Centered><ConsentStep onAccept={p.acceptConsent} /></Centered>;
   if (p.stage === "result" && p.result) {
-    return <Centered><ResultView result={p.result} canRetake={p.profile.canRetake} onRetake={p.retake} onDelete={p.remove} /></Centered>;
+    return <SummaryModal result={p.result} canRetake={p.profile.canRetake} onRetake={p.retake} onDelete={p.remove} onClose={() => router.push("/dashboard")} />;
   }
   return <Wizard p={p} />;
 }
