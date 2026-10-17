@@ -9,15 +9,18 @@ import { idr, pct, signedIdr } from "@/features/dashboard/lib/format";
 import { classColor, classOptions, filterHoldings, initials } from "@/features/dashboard/lib/holdings";
 import { useDash } from "@/features/dashboard/state/use-dash";
 import { useDismiss } from "@/features/dashboard/state/use-dismiss";
-import type { Holding, PortfolioData } from "@/features/dashboard/types";
+import type { Holding, HoldingRow, PortfolioData } from "@/features/dashboard/types";
 import { Sparkline } from "./charts";
+import { CashDialog } from "./cash-dialog";
 import { HoldingDialog } from "./holding-dialog";
 import { FilterIcon, KebabIcon, PlusIcon, SearchIcon } from "./icons";
 import { card, focusRing } from "./ui";
 
-const EN_CLASS: Record<string, string> = { equity: "Stocks", stock: "Stocks", bond_sbn: "Government bond", mutual_fund: "Mutual fund", deposit: "Deposit", commodity: "Commodity", other: "Other" };
+const NA = <span className="text-ink/50">-</span>;
 
-export function HoldingsSection({ items, footer, onChanged }: { items: Holding[]; footer: PortfolioData["footer"]; onChanged: () => void }) {
+const EN_CLASS: Record<string, string> = { equity: "Stocks", stock: "Stocks", bond_sbn: "Government bond", mutual_fund: "Mutual fund", deposit: "Deposit", cash: "Cash", commodity: "Commodity", other: "Other" };
+
+export function HoldingsSection({ items, footer, onChanged }: { items: HoldingRow[]; footer: PortfolioData["footer"]; onChanged: () => void }) {
   const { lang, t } = useDash();
   const p = t.pf;
   const [query, setQuery] = useState("");
@@ -26,6 +29,9 @@ export function HoldingsSection({ items, footer, onChanged }: { items: Holding[]
   const [filterOpen, setFilterOpen] = useState(false);
   const [dialog, setDialog] = useState<"closed" | "new" | Holding>("closed");
   const [deleting, setDeleting] = useState<Holding | null>(null);
+  const [cashOpen, setCashOpen] = useState(false);
+  const cashRow = items.find((x) => x.isCash);
+  const instruments = items.filter((x) => !x.isCash).length;
   const [busy, setBusy] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
   useDismiss(filterRef, filterOpen, () => setFilterOpen(false));
@@ -56,7 +62,7 @@ export function HoldingsSection({ items, footer, onChanged }: { items: Holding[]
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-stroke p-4 sm:px-6">
         <div className="flex items-center gap-3">
           <h2 id="holdings-title" className="text-lg font-bold">{p.holdingsTitle}</h2>
-          <span className="rounded-full border border-stroke bg-paper px-2.5 py-0.5 text-xs text-ink/80">{p.instruments.replace("{n}", String(items.length))}</span>
+          <span className="rounded-full border border-stroke bg-paper px-2.5 py-0.5 text-xs text-ink/80">{p.instruments.replace("{n}", String(instruments))}</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {searchOpen && (
@@ -110,7 +116,7 @@ export function HoldingsSection({ items, footer, onChanged }: { items: Holding[]
             </thead>
             <tbody>
               {shown.map((h) => (
-                <Row key={h.id} h={h} color={classColor(h.assetClass, codes)} classLabel={label(h)} onEdit={() => setDialog(h)} onDelete={() => setDeleting(h)} />
+                <Row key={h.id} h={h} color={classColor(h.assetClass, codes)} classLabel={label(h)} onEdit={() => (h.isCash ? setCashOpen(true) : setDialog(h))} onDelete={() => setDeleting(h)} />
               ))}
               {shown.length === 0 && <tr><td colSpan={9} className="px-6 py-10 text-center text-ink/70">{p.noMatch}</td></tr>}
             </tbody>
@@ -119,7 +125,7 @@ export function HoldingsSection({ items, footer, onChanged }: { items: Holding[]
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-x-8 gap-y-2 border-t border-stroke px-4 py-4 text-xs text-ink/70 sm:px-6">
-        <p>{p.footerShown.replace("{shown}", String(shown.length)).replace("{total}", String(footer.count || items.length))}</p>
+        <p>{p.footerShown.replace("{shown}", String(shown.length)).replace("{total}", String(items.length))}</p>
         <p className="flex flex-wrap gap-x-6 gap-y-1">
           <span>{p.unrealized}: <b className={footer.unrealized < 0 ? "text-loss" : "text-gain"}>{signedIdr(footer.unrealized)}</b></span>
           <span>{p.dividends}: <b className="text-ink">{idr(footer.dividendsAccumulated)}</b></span>
@@ -127,6 +133,7 @@ export function HoldingsSection({ items, footer, onChanged }: { items: Holding[]
       </div>
 
       {dialog !== "closed" && <HoldingDialog holding={dialog === "new" ? null : dialog} onClose={() => setDialog("closed")} onSaved={onChanged} />}
+      {cashOpen && cashRow && <CashDialog amount={cashRow.marketValue} onClose={() => setCashOpen(false)} onSaved={onChanged} />}
       {deleting && (
         <ConfirmDialog title={t.hd.delTitle} body={t.hd.delBody.replace("{name}", deleting.symbol ?? deleting.name)} confirm={t.hd.delConfirm} cancel={t.hd.cancel} pending={busy} onConfirm={remove} onCancel={() => setDeleting(null)} />
       )}
@@ -134,7 +141,7 @@ export function HoldingsSection({ items, footer, onChanged }: { items: Holding[]
   );
 }
 
-function Row({ h, color, classLabel, onEdit, onDelete }: { h: Holding; color: string; classLabel: string; onEdit: () => void; onDelete: () => void }) {
+function Row({ h, color, classLabel, onEdit, onDelete }: { h: HoldingRow; color: string; classLabel: string; onEdit: () => void; onDelete: () => void }) {
   const { lang, t } = useDash();
   const tone = (n: number) => (n < 0 ? "text-loss" : "text-gain");
   const td = "px-3 py-4 align-middle";
@@ -144,24 +151,24 @@ function Row({ h, color, classLabel, onEdit, onDelete }: { h: Holding; color: st
         <div className="flex items-center gap-3">
           <span aria-hidden className="grid size-10 shrink-0 place-items-center rounded-full text-xs font-bold text-paper" style={{ background: color }}>{initials(h).slice(0, 3)}</span>
           <div className="min-w-0">
-            <p className="font-bold">{h.symbol ?? h.name}</p>
-            <p className="max-w-32 text-xs text-ink/60">{h.symbol ? h.name : h.subtitle}</p>
+            <p className="font-bold">{h.isCash ? t.pf.cashName : (h.symbol ?? h.name)}</p>
+            <p className="max-w-32 text-xs text-ink/60">{h.isCash ? t.pf.cashSub : h.symbol ? h.name : h.subtitle}</p>
           </div>
         </div>
       </th>
       <td className={td}><p>{classLabel}</p>{h.symbol && h.subtitle && <p className="text-xs text-ink/55">{h.subtitle}</p>}</td>
-      <td className={`${td} whitespace-nowrap font-semibold`}>{idr(h.lastPrice)}{h.isManual && <span className="font-normal text-ink/55"> {t.pf.perUnit}</span>}</td>
-      <td className={td}><p className="whitespace-nowrap font-semibold">{idr(h.marketValue)}</p><p className="whitespace-nowrap text-xs text-ink/55">{t.pf.cost.replace("{v}", idr(h.costBasis))}</p></td>
-      <td className={`${td} whitespace-nowrap font-semibold ${tone(h.change1dPct)}`}>{pct(h.change1dPct, lang, { sign: true, digits: 2 })}</td>
-      <td className={`${td} whitespace-nowrap ${tone(h.totalReturnPct)}`}><p className="font-semibold">{pct(h.totalReturnPct, lang, { sign: true })}</p><p className="text-xs">{signedIdr(h.totalReturnIDR)}</p></td>
+      <td className={`${td} whitespace-nowrap font-semibold`}>{h.isCash ? NA : idr(h.lastPrice)}{h.isManual && <span className="font-normal text-ink/55"> {t.pf.perUnit}</span>}</td>
+      <td className={td}><p className="whitespace-nowrap font-semibold">{idr(h.marketValue)}</p>{!h.isCash && <p className="whitespace-nowrap text-xs text-ink/55">{t.pf.cost.replace("{v}", idr(h.costBasis))}</p>}</td>
+      <td className={`${td} whitespace-nowrap font-semibold ${tone(h.change1dPct)}`}>{h.isCash ? NA : pct(h.change1dPct, lang, { sign: true, digits: 2 })}</td>
+      <td className={`${td} whitespace-nowrap ${h.isCash ? "text-ink/55" : tone(h.totalReturnPct)}`}>{h.isCash ? NA : <><p className="font-semibold">{pct(h.totalReturnPct, lang, { sign: true })}</p><p className="text-xs">{signedIdr(h.totalReturnIDR)}</p></>}</td>
       <td className={`${td} whitespace-nowrap font-semibold`}>{pct(h.weightPct, lang)}</td>
-      <td className={td}><div className="h-8 w-20"><Sparkline values={h.trend1y} color={color} height={32} fill={false} label={t.pf.trendFor.replace("{name}", h.symbol ?? h.name)} /></div></td>
+      <td className={td}>{h.isCash ? NA : <div className="h-8 w-20"><Sparkline values={h.trend1y} color={color} height={32} fill={false} label={t.pf.trendFor.replace("{name}", h.symbol ?? h.name)} /></div>}</td>
       <td className={`${td} text-right pr-3 sm:pr-6`}><RowMenu h={h} onEdit={onEdit} onDelete={onDelete} /></td>
     </tr>
   );
 }
 
-function RowMenu({ h, onEdit, onDelete }: { h: Holding; onEdit: () => void; onDelete: () => void }) {
+function RowMenu({ h, onEdit, onDelete }: { h: HoldingRow; onEdit: () => void; onDelete: () => void }) {
   const { t } = useDash();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -179,13 +186,13 @@ function RowMenu({ h, onEdit, onDelete }: { h: Holding; onEdit: () => void; onDe
   };
   return (
     <div ref={ref} className="relative inline-block" onKeyDown={items}>
-      <button ref={btn} type="button" aria-haspopup="menu" aria-expanded={open} aria-label={t.pf.rowMenu.replace("{name}", h.symbol ?? h.name)} onClick={() => setOpen((o) => !o)} className={`grid size-9 place-items-center rounded-lg text-ink/70 hover:bg-field ${focusRing}`}>
+      <button ref={btn} type="button" aria-haspopup="menu" aria-expanded={open} aria-label={t.pf.rowMenu.replace("{name}", h.isCash ? t.pf.cashName : (h.symbol ?? h.name))} onClick={() => setOpen((o) => !o)} className={`grid size-9 place-items-center rounded-lg text-ink/70 hover:bg-field ${focusRing}`}>
         <KebabIcon className="size-5" />
       </button>
       {open && (
         <div role="menu" className="absolute right-0 top-10 z-20 w-36 rounded-xl border border-stroke bg-surface p-1 text-left shadow-xl">
           <button type="button" role="menuitem" autoFocus onClick={() => { setOpen(false); onEdit(); }} className={`w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-paper ${focusRing}`}>{t.pf.edit}</button>
-          <button type="button" role="menuitem" onClick={() => { setOpen(false); onDelete(); }} className={`w-full rounded-lg px-3 py-2 text-left text-sm text-loss hover:bg-paper ${focusRing}`}>{t.pf.del}</button>
+          {!h.isCash && <button type="button" role="menuitem" onClick={() => { setOpen(false); onDelete(); }} className={`w-full rounded-lg px-3 py-2 text-left text-sm text-loss hover:bg-paper ${focusRing}`}>{t.pf.del}</button>}
         </div>
       )}
     </div>
