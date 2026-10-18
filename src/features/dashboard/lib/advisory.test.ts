@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ChatMessage } from "@/features/dashboard/types";
-import { contextRows, mergeMessages, mergeTurns, parseBlocks, parseCitations, relativeTime, safeUrl, sessionTitle } from "./advisory";
+import { contextRows, mergeMessages, mergeTurns, parseBlocks, parseCitations, relativeTime, revealed, safeUrl, sessionTitle } from "./advisory";
 
 const msg = (id: number, content = "x"): ChatMessage => ({ id, role: "assistant", content, citations: null, createdAt: "2026-10-17T00:00:00Z" });
 
@@ -90,4 +90,13 @@ describe("contextRows", () => {
     expect(keys).not.toContain("Goal");
     expect(keys).not.toContain("Sharia");
   });
+});
+
+describe("revealed", () => {
+  it("returns the prefix", () => expect(revealed("halo dunia", 4)).toBe("halo"));
+  it("never shows half a citation marker", () => {
+    expect(revealed("benar [12] ya", 8)).toBe("benar ");
+    expect(revealed("benar [12] ya", 10)).toBe("benar [12]");
+  });
+  it("shows everything once n reaches the end", () => expect(revealed("a [1]", 99)).toBe("a [1]"));
 });

@@ -114,3 +114,11 @@ export function contextRows(c: AdvisorContext, L: ContextLabels, risks: Record<s
   ];
   return rows.filter((r): r is [string, string] => r[1] !== null);
 }
+
+/** The first `n` characters of an answer, without ever cutting a half-typed `[12` citation marker. */
+export function revealed(text: string, n: number): string {
+  if (n >= text.length) return text;
+  const open = text.lastIndexOf("[", n - 1);
+  const cut = open >= 0 && !text.slice(open, n).includes("]") ? open : n;
+  return text.slice(0, cut);
+}
