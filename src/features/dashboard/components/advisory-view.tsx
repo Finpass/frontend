@@ -2,13 +2,14 @@
 
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { toApiError, userMessage } from "@/lib/api-error";
 import { useAuth } from "@/features/auth/state/auth-context";
 import { idr } from "@/features/dashboard/lib/format";
 import { advisoryApi } from "@/features/dashboard/api/advisory-api";
 import { fromParams } from "@/features/dashboard/lib/compare";
 import { contextRows, mergeMessages, mergeTurns, parseBlocks, parseCitations, relativeTime, safeUrl, sessionTitle } from "@/features/dashboard/lib/advisory";
+import { chatErrorText, useAdvisoryRuns, type Run } from "@/features/dashboard/state/advisory-runs";
 import { useDash, useNow, useResource } from "@/features/dashboard/state/use-dash";
+import { useTypewriter } from "@/features/dashboard/state/use-typewriter";
 import type { ChatCitation, ChatMessage, ChatSessionItem, TurnEvent } from "@/features/dashboard/types";
 import { BotIcon, ChevronIcon, CloseIcon, PlusIcon, SearchIcon, SparkIcon } from "./icons";
 import { Sk, focusRing } from "./ui";
@@ -17,16 +18,15 @@ const MAX = 1000;
 const fill = (s: string, v: Record<string, string | number>) => Object.entries(v).reduce((a, [k, x]) => a.replace(`{${k}}`, String(x)), s);
 
 /** grounded is only known for replies received in this visit; stored messages fall back to "has citations". */
-type Msg = ChatMessage & { grounded?: boolean };
+type Msg = ChatMessage & { grounded?: boolean; fresh?: boolean }; // fresh: arrived in this visit, typed out
 
 export function AdvisoryView() {
-  const { t, lang } = useDash();
+  const { t } = useDash();
   const a = t.adv;
   const now = useNow();
   const list = useResource("advisory:sessions", (signal) => advisoryApi.sessions({ signal }));
   const [activeId, setActiveId] = useState<string | null>(null);
   const [msgs, setMsgs] = useState<Msg[]>([]);
-  const [sending, setSending] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
   const [failed, setFailed] = useState<{ text: string; error: string } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -38,20 +38,28 @@ export function AdvisoryView() {
   const [draft, setDraft] = useState(() => (arrival.symbols.length >= 2 ? arrival.ask.slice(0, MAX) : ""));
   const [cmp, setCmp] = useState<string[]>(() => (arrival.symbols.length >= 2 ? arrival.symbols : []));
   const [q, setQ] = useState("");
-  const [runId, setRunId] = useState<string | null>(null);
   const [live, setLive] = useState<TurnEvent[]>([]);
+  const runs = useAdvisoryRuns();
+  const run = runs.run;
+  // the question keeps running when this page is left; only the conversation it was asked in shows its progress
+  const owns = run?.status === "running" && run.sessionId === activeId;
+  const busy = run?.status === "running";
+  const runId = owns ? run.runId : null;
+  const sessionParam = useSearchParams().get("session");
+  const restored = useRef(false);
   const seq = useRef(0);
   const localId = useRef(0);
-  const endRef = useRef<HTMLDivElement>(null);
+  const logRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: "end" });
-  }, [msgs, sending, failed, live]);
+    const el = logRef.current;
+    if (el) el.scrollTop = el.scrollHeight; // not scrollIntoView: that would also scroll the page itself
+  }, [msgs, owns, failed, live]);
 
   // while a reply is being written, poll the steps the AI service reports for this run
   useEffect(() => {
-    if (!sending || !runId) return;
+    if (!runId) return;
     let since = 0;
     let stop = false;
     const tick = async () => {
@@ -69,27 +77,23 @@ export function AdvisoryView() {
       stop = true;
       clearInterval(id);
     };
-  }, [sending, runId]);
+  }, [runId]);
 
-  const errText = useCallback(
-    (e: unknown) => {
-      const err = toApiError(e);
-      if (err.status === 429) return a.rate;
-      if (err.status === 502) return a.aiDown;
-      return userMessage(err);
-    },
-    [a],
-  );
+  const follow = useCallback(() => {
+    const el = logRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, []);
+  const errText = useCallback((e: unknown) => chatErrorText(e, a), [a]);
 
   const open = async (id: string) => {
     const my = ++seq.current;
     setActiveId(id);
-    setSending(false);
     setPanel(false);
     setFailed(null);
     setNotice(null);
     setLoadingChat(true);
     setMsgs([]);
+    if (runs.run?.status === "done" && runs.run.reply?.sessionId === id) runs.ack(); // opened from the toast: it is seen now
     try {
       const s = await advisoryApi.session(id);
       if (my === seq.current) setMsgs(s.messages);
@@ -103,7 +107,6 @@ export function AdvisoryView() {
   const fresh = () => {
     seq.current++;
     setActiveId(null);
-    setSending(false);
     setMsgs([]);
     setFailed(null);
     setNotice(null);
@@ -113,10 +116,9 @@ export function AdvisoryView() {
   };
 
   /** retry=true resends the text of the failed message without adding another bubble. */
-  const send = async (text: string, retry = false) => {
+  const send = (text: string, retry = false) => {
     const body = text.trim();
-    if (!body || body.length > MAX || sending) return;
-    const my = ++seq.current;
+    if (!body || body.length > MAX || busy) return;
     if (!retry) {
       const m: Msg = { id: `local-${++localId.current}`, role: "user", content: body, citations: null, createdAt: new Date().toISOString() };
       setMsgs((p) => mergeMessages(p, [m]));
@@ -124,22 +126,49 @@ export function AdvisoryView() {
     }
     setFailed(null);
     setNotice(null);
-    const run = crypto.randomUUID();
     setLive([]);
-    setRunId(run);
-    setSending(true);
-    try {
-      const r = await advisoryApi.chat({ sessionId: activeId ?? undefined, message: body, lang, runId: run, ...(cmp.length >= 2 && { compare: cmp }) });
-      if (my !== seq.current) return;
-      setActiveId(r.sessionId);
-      setMsgs((p) => mergeMessages(p, [{ ...r.message, grounded: r.grounded }]));
-      list.reload();
-    } catch (e) {
-      if (my === seq.current) setFailed({ text: body, error: errText(e) });
-    } finally {
-      if (my === seq.current) setSending(false);
-    }
+    runs.start({ sessionId: activeId, message: body, compare: cmp });
   };
+
+  // a result for the conversation on screen arrives here; for any other one the provider raises a toast
+  const reload = list.reload;
+  const onResult = useCallback(
+    (r: Run) => {
+      if (r.status === "done" && r.reply) {
+        const reply = r.reply;
+        setActiveId(reply.sessionId);
+        setMsgs((p) => mergeMessages(p, [{ ...reply.message, grounded: reply.grounded, fresh: true }]));
+        reload();
+      } else setFailed({ text: r.text, error: r.error ?? "" });
+    },
+    [reload],
+  );
+  const { attach } = runs;
+  useEffect(() => {
+    attach(activeId, onResult);
+    return () => attach(undefined);
+  }, [activeId, onResult, attach]);
+
+  // opened from a toast (?session=) or returning to the page while a question is running or was answered meanwhile;
+  // deferred a tick because an effect may not set state synchronously
+  useEffect(() => {
+    const go = (fn: () => void) => queueMicrotask(fn);
+    if (sessionParam) {
+      go(() => void open(sessionParam));
+      return;
+    }
+    if (restored.current) return;
+    restored.current = true;
+    const r = runs.run;
+    if (r?.status === "done" && r.reply) {
+      const id = r.reply.sessionId;
+      go(() => void open(id));
+    } else if (r?.status === "running") {
+      const { sessionId, text } = r;
+      go(() => (sessionId ? void open(sessionId) : setMsgs([{ id: "local-pending", role: "user", content: text, citations: null, createdAt: new Date().toISOString() }])));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs on arrival and when a toast changes ?session=, not on every render
+  }, [sessionParam]);
 
   const remove = async (id: string) => {
     setConfirmId(null);
@@ -212,19 +241,19 @@ export function AdvisoryView() {
             )}
           </ol>
         </nav>
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6" role="log" aria-label={a.messages}>
+        <div ref={logRef} className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6" role="log" aria-label={a.messages}>
           <div className="mx-auto max-w-3xl">
-            {msgs.length === 0 && !loadingChat && !sending && <Empty onPick={(x) => send(x)} />}
+            {msgs.length === 0 && !loadingChat && !owns && <Empty onPick={(x) => send(x)} />}
             {loadingChat && <div className="space-y-3"><Sk className="h-16 w-2/3" /><Sk className="ml-auto h-12 w-1/2" /></div>}
             <ul className="space-y-6">
               {msgs.map((m) => (
                 <li key={m.id}>
-                  <Bubble m={m} now={now} />
+                  <Bubble m={m} now={now} onProgress={follow} />
                 </li>
               ))}
             </ul>
             <div role="status" aria-live="polite" className="mt-5">
-              {sending && (live.length > 0 ? <Trail turns={live} live /> : (
+              {owns && (live.length > 0 ? <Trail turns={live} live /> : (
                 <div className="flex items-center gap-2 text-sm text-ink/70">
                   <span aria-hidden className="flex gap-1">
                     {[0, 1, 2].map((i) => <span key={i} style={{ animationDelay: `${i * 150}ms` }} className="size-1.5 animate-bounce rounded-full bg-accent motion-reduce:animate-none" />)}
@@ -241,7 +270,6 @@ export function AdvisoryView() {
               </div>
             )}
             {notice && <p role="alert" className="mt-4 text-sm text-loss">{notice}</p>}
-            <div ref={endRef} />
           </div>
         </div>
         {cmp.length >= 2 && (
@@ -250,7 +278,7 @@ export function AdvisoryView() {
             <button type="button" onClick={() => setCmp([])} className={`rounded-lg px-2 py-1 text-ink/70 hover:text-ink ${focusRing}`}>{a.cmpClear}</button>
           </div>
         )}
-        <Composer value={draft} onChange={setDraft} onSend={() => send(draft)} disabled={sending} inputRef={inputRef} />
+        <Composer value={draft} onChange={setDraft} onSend={() => send(draft)} disabled={busy} inputRef={inputRef} />
       </section>
 
       <aside aria-label={a.contextPanel} className="hidden space-y-4 overflow-y-auto border-l border-stroke p-4 xl:block">
@@ -434,9 +462,10 @@ function Empty({ onPick }: { onPick: (q: string) => void }) {
   );
 }
 
-function Bubble({ m, now }: { m: Msg; now: Date }) {
+function Bubble({ m, now, onProgress }: { m: Msg; now: Date; onProgress: () => void }) {
   const { t, lang } = useDash();
   const a = t.adv;
+  const { shown, typing } = useTypewriter(m.content, m.role === "assistant" && !!m.fresh, onProgress);
   if (m.role === "user") {
     return (
       <div className="flex justify-end">
@@ -445,7 +474,7 @@ function Bubble({ m, now }: { m: Msg; now: Date }) {
     );
   }
   const cites = m.citations ?? [];
-  const blocks = parseBlocks(m.content);
+  const blocks = parseBlocks(shown);
   const ungrounded = m.grounded === false || (m.grounded === undefined && cites.length === 0);
   return (
     <div className="min-w-0">
@@ -466,6 +495,8 @@ function Bubble({ m, now }: { m: Msg; now: Date }) {
           ),
         )}
       </div>
+      {!typing && (
+      <>
       <div className="mt-3 flex items-center gap-3 text-xs text-ink/60">
         {cites.length > 0 && <span className="rounded-full border border-stroke bg-card px-3 py-1 font-medium text-ink/80">{fill(a.srcChip, { n: cites.length })}</span>}
         <time dateTime={m.createdAt}>{relativeTime(m.createdAt, now, lang)}</time>
@@ -484,6 +515,8 @@ function Bubble({ m, now }: { m: Msg; now: Date }) {
         </ol>
       )}
       {ungrounded && <p className="mt-2 text-xs text-ink/60">{a.ungrounded}</p>}
+      </>
+      )}
     </div>
   );
 }
