@@ -12,6 +12,7 @@ import { userMessage } from "@/lib/api-error";
 import { guardDecision } from "@/features/dashboard/lib/guard";
 import { formatUpdated } from "@/features/dashboard/lib/format";
 import { ChromeContext, useChrome, useDash, useNow, useResource } from "@/features/dashboard/state/use-dash";
+import { AdvisoryRunsProvider } from "@/features/dashboard/state/advisory-runs";
 import { useDismiss } from "@/features/dashboard/state/use-dismiss";
 import { BellIcon, ChevronIcon, ClockIcon, CompareIcon, CompassIcon, GearIcon, HomeIcon, NewsIcon, SearchIcon, SparkIcon, StarIcon } from "./icons";
 import { InlineError, focusRing } from "./ui";
@@ -41,6 +42,7 @@ function Frame({ children }: { children: ReactNode }) {
   const { t } = useDash();
   return (
     <ChromeContext.Provider value={chrome}>
+      <AdvisoryRunsProvider>
       <div className="font-app min-h-screen bg-paper text-ink">
         <a href="#main" className={`sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-ink ${focusRing}`}>{t.skip}</a>
         <TopBar />
@@ -52,6 +54,7 @@ function Frame({ children }: { children: ReactNode }) {
         </div>
         <BottomNav />
       </div>
+      </AdvisoryRunsProvider>
     </ChromeContext.Provider>
   );
 }
