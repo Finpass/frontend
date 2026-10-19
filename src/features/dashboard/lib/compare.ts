@@ -37,8 +37,18 @@ export function num(v: number | null | undefined, digits = 1, suffix = ""): stri
 export function askQuestion(symbols: string[], lang: Lang): string {
   const list = symbols.join(", ");
   return lang === "id"
-    ? `Jelaskan perbedaan utama ${list} untuk profil saya, termasuk risiko dan trade-off-nya.`
-    : `Explain the main differences between ${list} for my profile, including the risks and trade-offs.`;
+    ? `Bandingkan ${list} secara menyeluruh untuk profil dan portofolio saya. Mohon bahas:
+1. Return, volatilitas, dan return per unit risiko: mana yang lebih efisien?
+2. Valuasi dan fundamental (P/E, P/B, ROE, dividen) beserta laporan keuangan terbaru.
+3. Risiko utama tiap aset, likuiditas, dan status syariah.
+4. Kecocokan dengan profil risiko dan tujuan saya, serta dampaknya ke portofolio saya.
+5. Trade-off dan kesimpulan: mana yang lebih sesuai untuk saya dan kenapa.`
+    : `Compare ${list} thoroughly for my profile and portfolio. Please cover:
+1. Return, volatility and return per unit of risk: which is more efficient?
+2. Valuation and fundamentals (P/E, P/B, ROE, dividend) with the latest financial statements.
+3. Main risks of each asset, liquidity and sharia status.
+4. Fit with my risk profile and goals, and the effect on my portfolio.
+5. Trade-offs and a conclusion: which suits me better and why.`;
 }
 
 /** One-line description of an audit record. */

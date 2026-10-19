@@ -25,7 +25,7 @@ describe("compare helpers", () => {
   });
   it("builds a question and a record summary in both languages", () => {
     expect(askQuestion(["A", "B"], "en")).toContain("A, B");
-    expect(askQuestion(["A", "B"], "id")).toContain("profil saya");
+    expect(askQuestion(["A", "B"], "id")).toContain("profil dan portofolio saya");
     const rec = { id: 1, kind: "comparison" as const, createdAt: "", payload: { assets: [{ symbol: "A" }, { symbol: "B" }], best: "B" } };
     expect(recordSummary(rec, "en")).toBe("A vs B. Best fit: B");
     expect(recordSummary({ ...rec, kind: "portfolio", payload: { target: { gold: 5, etf: 30 } } }, "id")).toContain("etf 30%");
