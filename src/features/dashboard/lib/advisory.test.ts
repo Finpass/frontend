@@ -57,7 +57,17 @@ describe("parseBlocks", () => {
     expect(parseBlocks("Intro:\n- satu [1]\n* dua\n1. x\n2) y")).toEqual([
       { type: "p", text: "Intro:" },
       { type: "ul", items: ["satu [1]", "dua"] },
-      { type: "ol", items: ["x", "y"] },
+      { type: "ol", items: [{ text: "x", sub: [] }, { text: "y", sub: [] }] },
+    ]);
+  });
+  it("nests bullets in the numbered item above and keeps one list across them", () => {
+    expect(parseBlocks("1. A\n- a1\n- a2\n\n2. B\n- b1")).toEqual([
+      { type: "ol", items: [{ text: "A", sub: ["a1", "a2"] }, { text: "B", sub: ["b1"] }] },
+    ]);
+  });
+  it("reads a markdown table", () => {
+    expect(parseBlocks("| Metrik | A | B |\n|---|---|---|\n| PER | 5 | 11 |")).toEqual([
+      { type: "table", head: ["Metrik", "A", "B"], rows: [["PER", "5", "11"]] },
     ]);
   });
   it("drops bold markers and ignores empty text", () => {

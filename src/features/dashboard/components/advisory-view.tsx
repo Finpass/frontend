@@ -188,7 +188,7 @@ export function AdvisoryView() {
   const sources = uniqueSources(msgs);
 
   return (
-    <div className="-mx-4 -mt-6 grid h-[calc(100dvh-4rem)] min-h-[32rem] grid-cols-1 overflow-hidden border-stroke bg-paper sm:-mx-7 lg:-mb-10 lg:grid-cols-[19rem_1fr] xl:grid-cols-[19rem_1fr_20rem]">
+    <div className="relative -mx-4 -mt-6 grid h-[calc(100dvh-4rem)] min-h-[32rem] grid-cols-1 overflow-hidden border-stroke bg-paper sm:-mx-7 lg:-mb-10 lg:grid-cols-[19rem_1fr] xl:grid-cols-[19rem_1fr_20rem]">
       <div className="border-b border-stroke lg:hidden">
         <button type="button" aria-expanded={panel} aria-controls="adv-sessions" onClick={() => setPanel((o) => !o)} className={`flex h-11 w-full items-center justify-between px-4 text-sm font-semibold ${focusRing}`}>
           {fill(a.chatsN, { n: count })}
@@ -312,7 +312,7 @@ function SourcesPanel({ sources }: { sources: ChatCitation[] }) {
   const a = t.adv;
   return (
     <details open className={`${panelCard} group p-4`}>
-      <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold [&::-webkit-details-marker]:hidden">
+      <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold text-accent [&::-webkit-details-marker]:hidden">
         {a.srcPanel}
         <span className="flex items-center gap-2 text-ink/70">{sources.length}<ChevronIcon className="size-4 transition-transform group-open:rotate-180" /></span>
       </summary>
@@ -356,8 +356,11 @@ function ContextPanel() {
       )
     : [];
   return (
-    <section className={`${panelCard} p-4`}>
-      <h2 className="text-sm font-bold text-accent">{a.ctxTitle}</h2>
+    <details className={`${panelCard} group p-4`}>
+      <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-bold text-accent [&::-webkit-details-marker]:hidden">
+        {a.ctxTitle}
+        <ChevronIcon className="size-4 text-ink/70 transition-transform group-open:rotate-180" />
+      </summary>
       {rows.length === 0 ? (
         <p className="mt-3 text-xs text-ink/60">{a.ctxNone}</p>
       ) : (
@@ -380,7 +383,7 @@ function ContextPanel() {
           <p className="mt-4 text-[11px] leading-snug text-ink/50">{a.ctxPrivacy}</p>
         </>
       )}
-    </section>
+    </details>
   );
 }
 
@@ -479,7 +482,7 @@ function Bubble({ m, now, onProgress }: { m: Msg; now: Date; onProgress: () => v
   return (
     <div className="min-w-0">
       {m.turns && m.turns.length > 0 && <Trail turns={m.turns} />}
-      <div className="space-y-3 break-words text-justify text-sm leading-7 text-ink/90 [hyphens:auto]" lang={lang}>
+      <div className="space-y-3 break-words text-sm leading-7 text-ink/90 [hyphens:auto]" lang={lang}>
         <span className="sr-only">{a.assistant}: </span>
         {blocks.map((blk, i) =>
           blk.type === "p" ? (
@@ -488,10 +491,34 @@ function Bubble({ m, now, onProgress }: { m: Msg; now: Date; onProgress: () => v
             <ul key={i} className="list-disc space-y-1.5 pl-5 marker:text-accent">
               {blk.items.map((it, j) => <li key={j}><Inline text={it} cites={cites} /></li>)}
             </ul>
-          ) : (
-            <ol key={i} className="list-decimal space-y-1.5 pl-5 marker:font-semibold marker:text-accent">
-              {blk.items.map((it, j) => <li key={j}><Inline text={it} cites={cites} /></li>)}
+          ) : blk.type === "ol" ? (
+            <ol key={i} className="list-decimal space-y-2 pl-5 marker:font-semibold marker:text-accent">
+              {blk.items.map((it, j) => (
+                <li key={j}>
+                  <Inline text={it.text} cites={cites} />
+                  {it.sub.length > 0 && (
+                    <ul className="mt-1.5 list-disc space-y-1.5 pl-5 marker:text-accent">
+                      {it.sub.map((s, k) => <li key={k}><Inline text={s} cites={cites} /></li>)}
+                    </ul>
+                  )}
+                </li>
+              ))}
             </ol>
+          ) : (
+            <div key={i} className="overflow-x-auto rounded-xl border border-stroke">
+              <table className="w-full min-w-max border-collapse text-left text-sm leading-6">
+                <thead className="bg-card text-ink/70">
+                  <tr>{blk.head.map((h, j) => <th key={j} scope="col" className="px-3 py-2 font-semibold">{h}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {blk.rows.map((r, j) => (
+                    <tr key={j} className="border-t border-stroke">
+                      {r.map((c, k) => <td key={k} className={`px-3 py-2 ${k === 0 ? "font-medium text-ink/80" : ""}`}><Inline text={c} cites={cites} /></td>)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ),
         )}
       </div>
@@ -541,6 +568,13 @@ function Composer({ value, onChange, onSend, disabled, inputRef }: { value: stri
   const { t } = useDash();
   const a = t.adv;
   const empty = !value.trim();
+  // grow with the text (a prefilled comparison prompt is several lines); max-h-28 then scrolls
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value, inputRef]);
   const onKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
@@ -556,8 +590,8 @@ function Composer({ value, onChange, onSend, disabled, inputRef }: { value: stri
       className="px-4 pb-4 pt-2 sm:px-6"
     >
       <label htmlFor="adv-input" className="sr-only">{a.inputLabel}</label>
-      <div className="mx-auto flex max-w-3xl items-center gap-3 rounded-full border border-stroke bg-surface py-2 pl-5 pr-2 focus-within:ring-2 focus-within:ring-accent/70">
-        <textarea id="adv-input" ref={inputRef} rows={1} maxLength={MAX} value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)} onKeyDown={onKey} placeholder={a.inputPlaceholder} className="max-h-28 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-sm outline-none placeholder:text-ink/50 disabled:opacity-60" />
+      <div className="mx-auto flex max-w-3xl items-center gap-3 rounded-3xl border border-stroke bg-surface py-2 pl-5 pr-2 focus-within:ring-2 focus-within:ring-accent/70">
+        <textarea id="adv-input" ref={inputRef} rows={1} maxLength={MAX} value={value} disabled={disabled} onChange={(e) => onChange(e.target.value)} onKeyDown={onKey} placeholder={a.inputPlaceholder} className="max-h-40 min-h-8 flex-1 resize-none bg-transparent py-1.5 text-sm outline-none placeholder:text-ink/50 disabled:opacity-60" />
         <span className={`${value ? "hidden sm:block" : "hidden"} text-xs ${value.length >= MAX ? "text-warn" : "text-ink/50"}`} aria-hidden>{fill(a.counter, { n: value.length })}</span>
         <button type="submit" disabled={empty || disabled} aria-label={disabled ? a.sending : a.send} className={`grid size-10 shrink-0 place-items-center rounded-full bg-accent text-primary-ink disabled:opacity-50 ${focusRing}`}>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden><path d="M3.4 20.4 21 12 3.4 3.6 3.3 10l12 2-12 2Z" /></svg>

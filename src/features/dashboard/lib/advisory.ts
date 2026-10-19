@@ -57,12 +57,19 @@ export function mergeTurns(prev: TurnEvent[], next: TurnEvent[]): TurnEvent[] {
   return [...bySeq.values()].sort((a, b) => a.sequence - b.sequence);
 }
 
-export type Block = { type: "p"; text: string } | { type: "ul" | "ol"; items: string[] };
+export type Block =
+  | { type: "p"; text: string }
+  | { type: "ul"; items: string[] }
+  | { type: "ol"; items: { text: string; sub: string[] }[] }
+  | { type: "table"; head: string[]; rows: string[][] };
 
 const BULLET = /^\s*[-*\u2022]\s+(.*)$/;
 const NUMBERED = /^\s*\d{1,2}[.)]\s+(.*)$/;
+const ROW = /^\|.*\|$/;
+const RULE = /^\|[\s:|-]+\|$/;
+const cells = (row: string) => row.slice(1, -1).split("|").map((c) => c.trim());
 
-/** Turns plain model output into paragraphs and lists. Single line breaks inside a paragraph become spaces; **bold** markers are dropped. */
+/** Turns plain model output into paragraphs, lists (bullets under a numbered item nest in it) and tables. Single line breaks inside a paragraph become spaces; **bold** markers are dropped. */
 export function parseBlocks(text: string): Block[] {
   const blocks: Block[] = [];
   let para: string[] = [];
@@ -72,15 +79,26 @@ export function parseBlocks(text: string): Block[] {
   };
   for (const raw of text.replace(/\*\*(.+?)\*\*/g, "$1").split("\n")) {
     const line = raw.trim();
+    const last = blocks[blocks.length - 1];
+    if (ROW.test(line)) {
+      flush();
+      if (RULE.test(line)) continue;
+      if (last?.type === "table") last.rows.push(cells(line));
+      else blocks.push({ type: "table", head: cells(line), rows: [] });
+      continue;
+    }
     const b = BULLET.exec(line);
     const n = b ? null : NUMBERED.exec(line);
-    const item = b?.[1] ?? n?.[1];
-    if (item !== undefined) {
+    if (n) {
       flush();
-      const type = b ? "ul" : "ol";
-      const last = blocks[blocks.length - 1];
-      if (last && last.type === type) last.items.push(item);
-      else blocks.push({ type, items: [item] });
+      const item = { text: n[1], sub: [] };
+      if (last?.type === "ol") last.items.push(item);
+      else blocks.push({ type: "ol", items: [item] });
+    } else if (b) {
+      flush();
+      if (last?.type === "ol") last.items[last.items.length - 1].sub.push(b[1]);
+      else if (last?.type === "ul") last.items.push(b[1]);
+      else blocks.push({ type: "ul", items: [b[1]] });
     } else if (line === "") flush();
     else para.push(line);
   }
