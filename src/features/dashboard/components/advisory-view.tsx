@@ -228,19 +228,9 @@ export function AdvisoryView() {
       </aside>
 
       <section aria-label={a.messages} className="flex min-h-0 flex-col">
-        <nav aria-label={a.crumbLabel} className="hidden border-b border-stroke px-6 py-4 text-sm text-ink/60 sm:block">
-          <ol className="flex items-center gap-2">
-            <li>{a.crumbRoot}</li>
-            <li aria-hidden>{"\u203A"}</li>
-            <li>{a.crumb}</li>
-            {activeTitle && (
-              <>
-                <li aria-hidden>{"\u203A"}</li>
-                <li aria-current="page" className="min-w-0 truncate font-semibold text-ink">{activeTitle}</li>
-              </>
-            )}
-          </ol>
-        </nav>
+        {activeTitle && (
+          <h1 className="hidden min-w-0 truncate border-b border-stroke px-6 py-4 text-sm font-semibold text-ink sm:block">{activeTitle}</h1>
+        )}
         <div ref={logRef} className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6" role="log" aria-label={a.messages}>
           <div className="mx-auto max-w-3xl">
             {msgs.length === 0 && !loadingChat && !owns && <Empty onPick={(x) => send(x)} />}
@@ -492,7 +482,7 @@ function Bubble({ m, now, onProgress }: { m: Msg; now: Date; onProgress: () => v
               {blk.items.map((it, j) => <li key={j}><Inline text={it} cites={cites} /></li>)}
             </ul>
           ) : blk.type === "ol" ? (
-            <ol key={i} className="list-decimal space-y-2 pl-5 marker:font-semibold marker:text-accent">
+            <ol key={i} start={blk.start} className="list-decimal space-y-2 pl-5 marker:font-semibold marker:text-accent">
               {blk.items.map((it, j) => (
                 <li key={j}>
                   <Inline text={it.text} cites={cites} />
