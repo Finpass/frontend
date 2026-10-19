@@ -34,9 +34,20 @@ export function AdvisoryView() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   // arriving from the comparison page: keep the products as context and pre-fill the question (the user still sends it)
   const params = useSearchParams();
-  const [arrival] = useState(() => fromParams(params, "compare"));
-  const [draft, setDraft] = useState(() => (arrival.symbols.length >= 2 ? arrival.ask.slice(0, MAX) : ""));
-  const [cmp, setCmp] = useState<string[]>(() => (arrival.symbols.length >= 2 ? arrival.symbols : []));
+  const [draft, setDraft] = useState("");
+  const [cmp, setCmp] = useState<string[]>([]);
+  // adjusted while rendering, not in an initializer: with cacheComponents a visited page keeps its state, so a second
+  // arrival from the comparison page (new ?compare=&ask=) would otherwise never refill the input
+  const arrivalKey = params.toString();
+  const [seenKey, setSeenKey] = useState("");
+  if (seenKey !== arrivalKey) {
+    setSeenKey(arrivalKey);
+    const arrival = fromParams(params, "compare");
+    if (arrival.symbols.length >= 2) {
+      setDraft(arrival.ask.slice(0, MAX));
+      setCmp(arrival.symbols);
+    }
+  }
   const [q, setQ] = useState("");
   const [live, setLive] = useState<TurnEvent[]>([]);
   const runs = useAdvisoryRuns();
