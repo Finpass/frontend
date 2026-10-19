@@ -12,6 +12,8 @@ export const authApi = {
   forgotPassword: (email: string) => http.post<null>("/auth/forgot-password", { email }),
   resetPassword: (input: ResetInput) => http.post<null>("/auth/reset-password", input),
   logout: () => http.post<null>("/auth/logout"),
+  exportData: () => http.get<Record<string, unknown>>("/auth/export"),
+  deleteAccount: (password: string) => http.delete<null>("/auth/account", { data: { password, confirm: "DELETE" } }),
   me: () => http.get<AuthUser>("/auth/me"),
   // single-flight: parallel callers (StrictMode, several tabs) must not race the rotating cookie
   refresh: () => (refreshing ??= http.post<Session>("/auth/refresh").finally(() => (refreshing = null))),

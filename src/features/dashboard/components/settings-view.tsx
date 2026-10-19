@@ -8,6 +8,7 @@ import { whatsappApi } from "@/features/dashboard/api/dashboard-api";
 import { shortDate } from "@/features/dashboard/lib/format";
 import { useDash, useResource } from "@/features/dashboard/state/use-dash";
 import type { BriefingPreview, WhatsappSettings } from "@/features/dashboard/types";
+import { PrivacySettings } from "./privacy-settings";
 import { ProfileSettings } from "./profile-settings";
 import { InlineError, LoadingRegion, PageTitle, Sk, card, focusRing, selectArrow, selectChevron } from "./ui";
 
@@ -44,6 +45,7 @@ export function SettingsView() {
           {res.data && <WaForm key={`${res.data.phone}|${res.data.verified}|${res.data.optIn}|${res.data.sendTimeLocal}|${res.data.frequency}|${res.data.timezone}|${res.data.language}`} initial={res.data} onChanged={res.reload} />}
         </div>
       </section>
+      <PrivacySettings />
     </div>
   );
 }
