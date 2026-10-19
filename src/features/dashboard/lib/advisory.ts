@@ -60,11 +60,11 @@ export function mergeTurns(prev: TurnEvent[], next: TurnEvent[]): TurnEvent[] {
 export type Block =
   | { type: "p"; text: string }
   | { type: "ul"; items: string[] }
-  | { type: "ol"; items: { text: string; sub: string[] }[] }
+  | { type: "ol"; start: number; items: { text: string; sub: string[] }[] }
   | { type: "table"; head: string[]; rows: string[][] };
 
 const BULLET = /^\s*[-*\u2022]\s+(.*)$/;
-const NUMBERED = /^\s*\d{1,2}[.)]\s+(.*)$/;
+const NUMBERED = /^\s*(\d{1,2})[.)]\s+(.*)$/;
 const ROW = /^\|.*\|$/;
 const RULE = /^\|[\s:|-]+\|$/;
 const cells = (row: string) => row.slice(1, -1).split("|").map((c) => c.trim());
@@ -91,9 +91,9 @@ export function parseBlocks(text: string): Block[] {
     const n = b ? null : NUMBERED.exec(line);
     if (n) {
       flush();
-      const item = { text: n[1], sub: [] };
+      const item = { text: n[2], sub: [] };
       if (last?.type === "ol") last.items.push(item);
-      else blocks.push({ type: "ol", items: [item] });
+      else blocks.push({ type: "ol", start: Number(n[1]), items: [item] });
     } else if (b) {
       flush();
       if (last?.type === "ol") last.items[last.items.length - 1].sub.push(b[1]);
