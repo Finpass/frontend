@@ -59,4 +59,6 @@ Set at build time (they are public, so never put a secret in them):
 | `NEXT_PUBLIC_API_BASE_URL` | public URL of the backend API |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google sign-in client id |
 
+Error reporting uses Sentry (`@sentry/nextjs`; the DSN in `sentry.*.config.ts` and `src/instrumentation-client.ts` is a public ingest key). No user data, request bodies or Session Replay are collected, and browser reports go through the same-origin `/monitoring` route. To upload source maps during the build, set `SENTRY_AUTH_TOKEN` (a secret) in the build environment; without it the build still works and stack traces are just minified.
+
 Then add the frontend's public URL to the backend's `CORS_ORIGINS` and `PUBLIC_APP_URL`.
